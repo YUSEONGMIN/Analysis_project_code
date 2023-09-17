@@ -9,7 +9,7 @@
 2. [분석2](#2-분석2)
 3. [분석3](#3-분석3)
 
-### 1. IPO 수 예측 분석
+## 1. IPO(기업공개) 수 예측 분석
 
 모델에 대한 구체적인 내용은 
 https://github.com/YUSEONGMIN/Papers-with-code/tree/main/CSAM
@@ -72,7 +72,7 @@ def INHAR_P(hps,params,n):
     return X0
 ```
 
-파라미터 추정 방법은 **조건부 최소제곱법**(Conditional Least Squares; CLS)을 이용합니다.
+파라미터 추정 방법은 **조건부 최소제곱법**(Conditional Least Squares; CLS)을 이용했습니다.
 
 $$
 \begin{equation}
@@ -149,7 +149,7 @@ def YWE(data,hps): # Yule-Walker Estimator
     return np.array([*ayw,lamb])
 ```
 
-#### 데이터 분석
+### 데이터 분석
 
 이질적 특성을 반영한 모형이므로 이질적 시장가설을 따르는 금융 데이터를 선택했습니다.
 > 참고문헌  
@@ -157,7 +157,7 @@ def YWE(data,hps): # Yule-Walker Estimator
 [Ivanov V and Lewis CM (2008). The determinants of market-wide issue cycles for initial public offerings, JCF, 14, 567–583.](https://doi.org/10.1016/j.jcorpfin.2008.09.009)  
 [Gucbilmez, U. (2015). IPO waves in China and Hong Kong, IRFA, 40, 14–26.](https://doi.org/10.1016/j.irfa.2015.05.010)  
 
-#### EDA
+### EDA
 
 데이터 출처: 국내 기업공시채널 [KIND(Korea investor’s network for disclosure system)](https://kind.krx.co.kr)
 
@@ -188,7 +188,7 @@ adfuller(ipo)
  
 검정 결과 유의확률(p-value) 값이 0.05보다 작으므로 정상성임을 확인할 수 있습니다.
 
-#### Fitting
+### Fitting
 
 월별 데이터임을 고려하여 
 하이퍼 파라미터 $h_p$는 12개월 (1,12)과 6개월 (1,6,12)로 선택했습니다.
@@ -202,11 +202,19 @@ results.params
 CLSE(ipo,hps), YWE(ipo,hps)
 ```
 
-IPO 데이터의 CLS 추정량과 Yule-Walker 추정량을 계산하고 INHAR 모형에 적합(fitting)시켰습니다.
+IPO 데이터의 CLS 추정량과 Yule-Walker 추정량을 계산하고 INHAR 모형에 적합(fitting) 시켰습니다.
 
 ![Fitting](https://github.com/YUSEONGMIN/Papers-with-code/raw/main/CSAM/img/ipo_fit.png)
 
-#### Forecasting
+### Forecasting
+
+> In-sample: 2000.01 - 2020.12 기간의 252개 데이터  
+ Out-of-sample: 2021.01 - 2022.07 기간의 19개 데이터
+
+추정된 파라미터를 통해 예측 값을 구하고 기존의 INAR 모형과 예측 성능을 비교해보았습니다.  
+95% 신뢰구간 하에 예측 그래프는 다음과 같습니다.
+
+![Forecasting](https://github.com/YUSEONGMIN/Papers-with-code/raw/main/CSAM/img/ipo_fore.png)
 
 ```python
 def INHAR_FORE(data,hps,m,n,method):
@@ -238,17 +246,42 @@ def INHAR_FORE(data,hps,m,n,method):
         return res,F_yw  
     else:
         raise NotImplementedError
+        
+def PM(data,res,F): # Performance Measures
+    mae=sum(abs(res))/len(res)
+    rmse=np.sqrt(sum(res**2)/len(res))
+    mape=sum(abs(res/data[-n:]))*100/len(res)
+    smape=sum(abs(res)/(data[-n:]+abs(np.array(F))))*100/len(res)
+    rrse=np.sqrt(sum(res**2)/sum((np.mean(data[-n:])-data[-n:])**2))
+    return mae,rmse,mape,smape,rrse
 ```
+
+| | MAE | RMSE | MAPE | SMAPE | RRSE |
+| --- | --- | --- | --- | --- | --- |
+| **INHAR(2)** | 2.4699 | 2.9643 | 39.1116 | 16.5429 | 1.108 |
+| **INAR(2)** | 2.7350 | 3.1520 | 40.7012 | 18.4818 | 1.1781 |
+||
+| **INHAR(3)** | 2.4897 | 2.9743 | 39.1858 | 16.7153 | 1.1117 |
+| **INAR(3)** | 2.8006 | 3.1744 | 41.3265 | 18.8416 | 1.1865 |
+
+예측 성능 지표로 MAE, RMSE, MAPE, SMAPE, RRSE를 이용했습니다.
+
+|Efficiency_CLS|MAE|RMSE|MAPE|SMAPE|RRSE|
+|:-:|--|--|--|--|--|
+|**p=2**|10.73|6.33|4.06|11.72|6.33|
+|**p=3**|12.49|6.73|5.46|12.72|6.73|
+
+Efficiency을 계산한 결과, 기존 INAR 모형보다 성능을 최대 12% 향상시킬 수 있었습니다.
 
 #### [목차로 돌아가기](#목차)
 
-### 2. 분석2
+## 2. 분석2
 
 ㅁㅁㅁ
 
 #### [목차로 돌아가기](#목차)
 
-### 3. 분석3
+## 3. 분석3
 
 ㅁㅁㅁ
 
