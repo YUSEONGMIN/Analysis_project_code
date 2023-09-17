@@ -3,7 +3,7 @@
 ## 목차
 
 1. [IPO(기업공개) 수 예측 분석](#1-ipo-수-예측-분석)
-2. [분석2](#2-분석2)
+2. [농아인을 위한 수어 번역기 개발](#2-농아인을-위한-수어-번역기-개발)
 3. [분석3](#3-분석3)
 
 ## 1. IPO 수 예측 분석
@@ -199,7 +199,16 @@ results.params
 CLSE(ipo,hps), YWE(ipo,hps)
 ```
 
-IPO 데이터의 CLS 추정량과 Yule-Walker 추정량을 계산하고 INHAR 모형에 적합(fitting) 시켰습니다.
+|CLS|YW| RMSE | MAPE | SMAPE | RRSE |
+| --- | --- | --- | --- | --- | --- |
+| **INHAR(2)** | 2.4699 | 2.9643 | 39.1116 | 16.5429 | 1.108 |
+| **INAR(2)** | 2.7350 | 3.1520 | 40.7012 | 18.4818 | 1.1781 |
+||
+| **INHAR(3)** | 2.4897 | 2.9743 | 39.1858 | 16.7153 | 1.1117 |
+| **INAR(3)** | 2.8006 | 3.1744 | 41.3265 | 18.8416 | 1.1865 |
+
+IPO 데이터의 CLS 추정량과 Yule-Walker 추정량을 계산하고 INHAR 모형에 적합(fitting) 시켰습니다.  
+아래는 CLS 추정량을 통해 적합한 모습입니다.
 
 ![Fitting](https://github.com/YUSEONGMIN/Papers-with-code/raw/main/CSAM/img/ipo_fit.png)
 
@@ -261,14 +270,16 @@ def PM(data,res,F): # Performance Measures
 | **INHAR(3)** | 2.4897 | 2.9743 | 39.1858 | 16.7153 | 1.1117 |
 | **INAR(3)** | 2.8006 | 3.1744 | 41.3265 | 18.8416 | 1.1865 |
 
-예측 성능 지표로 MAE, RMSE, MAPE, SMAPE, RRSE를 이용했습니다.
+예측 성능 지표로 MAE, RMSE, MAPE, SMAPE, RRSE를 이용했습니다.  
+INHAR 모형이 INAR 모형보다 좋은 예측 성능을 보여주었습니다.  
+구체적으로 얼마나 좋은지 확인하기 위해 Efficiency를 계산하였습니다.
 
 |Efficiency_CLS|MAE|RMSE|MAPE|SMAPE|RRSE|
 |:-:|--|--|--|--|--|
 |**p=2**|10.73|6.33|4.06|11.72|6.33|
 |**p=3**|12.49|6.73|5.46|12.72|6.73|
 
-Efficiency을 계산한 결과, 기존 INAR 모형보다 성능을 최대 12% 향상시킬 수 있었습니다.
+Efficiency를 계산한 결과, 기존 INAR 모형보다 성능을 최대 12% 향상시킬 수 있었습니다.
 
 #### [목차로 돌아가기](#목차)
 
@@ -276,12 +287,291 @@ Efficiency을 계산한 결과, 기존 INAR 모형보다 성능을 최대 12% �
 
 ### 소목차
 
-2-1. [데이터 수집](#2-1-데이터-수집)
+2-1. [데이터 수집](#2-1-데이터-수집)  
 2-2. [데이터 전처리/모델링](#2-2-데이터-전처리-모델링)
 
 ### 2-1. 데이터 수집
 
+담당 역할: 농아인 협회 위치, 국립국어원 수어사전, 한국 농아인협회 공지사항 수집
+
+
+```python
+## 농아인 협회/센터 위치 수집
+
+# 필요한 패키지를 불러옵니다.
+import time
+import json
+import sqlite3
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
+
+url = 'https://map.naver.com/v5/api/search'
+
+params = {
+    'caller': 'pcweb',
+    'query': '농아인', # 농아인 검색
+    'type': 'place',
+    'searchCoord': '127.0406198501587;37.51741907323963',
+    'page': '1',
+    'displayCount': '20',
+    'isPlaceRecommendationReplace': 'true',
+    'lang': 'ko'
+}
+
+params['page'] = 1
+resp = requests.get(url, params=params)
+dom = BeautifulSoup(resp.text, 'html.parser')
+json_obj = json.loads(resp.text)
+
+json_obj # 기관명, 분류, x좌표, y좌표, 주소가 필요
+
+k = 1
+second=[]
+while True:
+    params['page'] = k
+    time.sleep(1)
+    resp = requests.get(url, params=params)
+    json_obj = json.loads(resp.text)
+
+    for i in json_obj['result']['place']['list']:
+        first=[]
+        first.append(i['name'])
+        first.append(i['category'])
+        first.append(i['x'])
+        first.append(i['y'])
+        first.append(i['address'])
+
+        second.append(first)
+
+    k += 1
+    
+    if len(json_obj['result']['place']['list']) == 0:
+        break
+
+df_1 = pd.DataFrame(second) # name, category, x, y, address가 변수로
+category = df_1[1].values # 1번째 변수 = category
+category = category.tolist()
+category # 각 리스트마다 하나씩
+
+for i in range(len(category)):
+    element = category[i]
+    ctg = ""
+    for j in range(len(element)):
+        ctg += element[j]
+        if j != (len(element) - 1):
+            ctg +=","
+    category[i] = ctg
+category
+
+df_1["Category"] = category
+
+del df_1[1]
+
+df_1.columns = ["Name", "Longitude", "Latitude", "Address", "Category"]
+order = ["Name", "Category", "Longitude", "Latitude", "Address"]
+df_1 = df_1[order]
+
+conn = sqlite3.connect('naver_map.db')
+cur = conn.cursor()
+
+cur.executescript(''' 
+    DROP TABLE IF EXISTS sonmin;
+''')
+
+conn.commit()
+cur = conn.cursor()
+
+df_1.to_sql('naver_map', conn)
+cur.close()
+
+# 국립국어원 수어사전 수집
+
+# 필요한 패키지를 불러옵니다.
+import re
+import requests
+from bs4 import BeautifulSoup
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+url = 'http://sldict.korean.go.kr/front/sign/signList.do'
+
+params = {
+    'current_pos_index': '',
+    'origin_no': '0',
+    'searchWay': '',
+    'top_category': '',
+    'category': 'SPE001', # SPE001: 법률 용어, SPE002: 교통, ...
+    'detailCategory': '',
+    'searchKeyword': '',
+    'pageIndex': '1'
+}
+
+params['pageIndex'] = 1
+params['category'] = 'SPE001'
+resp = requests.get(url, params=params,verify=False)
+dom = BeautifulSoup(resp.text, 'html.parser')
+dom.prettify
+
+# 단어 카테고리 추출
+dom.select('#menu > div > div > ul > li.on > ul > li > a > span')[0].text
+
+# 단어 제목 추출
+title = dom.select('#list > li > div > p > span.tit > a')[0].text
+re.sub('[^가-힣]','',title)
+
+# 단어 뜻 추출
+mean = dom.select('#list > li > div > p > span.info > a > cite > span')[0].text
+re.sub('[\r\n\t]','',mean)
+
+# 단어 영상 추출
+s = dom.select('#signListForm > div.result_list.mt_30 > div.wrap_list > ul > li > div.list_left > div > a > img')[1].get('src')
+re.findall('MOV.+',s)[0].replace('215X161.jpg', '700X466.mp4')
+
+# s = s.replace('215X161.jpg', '700X466.mp4')
+# re.findall('MOV.+',s)[0]
+
+# 크롤링 시작
+url = 'http://sldict.korean.go.kr/front/sign/signList.do'
+
+params = {
+    'current_pos_index': '',
+    'origin_no': '0',
+    'searchWay': '',
+    'top_category': '',
+    'category': 'SPE001',
+    'detailCategory': '',
+    'searchKeyword': '',
+    'pageIndex': '1'
+}
+
+category_num = 1
+pageIndex_num = 1
+
+category = '#menu > div > div > ul > li.on > ul > li > a > span'
+title = '#list > li > div > p > span.tit > a'
+mean = '#list > li > div > p > span.info > a > cite > span'
+video = '#signListForm > div.result_list.mt_30 > div.wrap_list > ul > li > div.list_left > div > a > img'
+
+while True:
+    try:
+        params['category'] = 'SPE'+str(category_num).zfill(3)
+        while True:
+            params['pageIndex'] = pageIndex_num
+            resp = requests.get(url, params=params,verify=False)
+            dom = BeautifulSoup(resp.text, 'html.parser')            
+            for i in range(len(dom.select(title))):
+                s = dom.select(video)[2*i+1].get('src')
+                if len(re.findall('MOV.+',s.replace('215X161.jpg', '700X466.mp4'))) == 0:
+                    continue
+                f = open('add_category.txt','a')  
+                f.write('\n'+dom.select(category)[category_num-1].text+
+                        '\t'+dom.select(video)[2*i+1].get('src').replace('215X161.jpg', '700X466.mp4')+
+                        '\t'+re.sub('[^가-힣]','',dom.select(title)[i].text)+
+                        '\t'+re.sub('[\r\n\t]','',dom.select(mean)[i].text)+
+                        '\t'+re.findall('MOV.+',s.replace('215X161.jpg', '700X466.mp4'))[0])
+            if len(dom.select(title)) == 0:
+                print('페이지 끝 \n')
+                break
+            pageIndex_num += 1
+        category_num += 1
+        pageIndex_num = 1
+    except:
+        print('카테고리 끝')
+        f.close()
+        break
+
+## 한국 농아인협회 공지사항 수집
+
+# 필요한 패키지를 불러옵니다.
+import re
+import sqlite3
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
+
+url = 'http://www.deafkorea.com/sub_customer/notice.php'
+
+params = {
+    'b_name': 'notice',
+    'code': '',
+    'keyfield': '',
+    'key': '',
+    'page': ''
+}
+
+params['page'] = 2
+resp = requests.get(url, params=params)
+resp.encoding = 'utf8'
+dom = BeautifulSoup(resp.content, 'html.parser')
+dom
+
+# 공지사항 날짜
+dom.select('table:not(.notice) td.w_date')
+
+# 공지사항 제목과 주소
+dom.select('table:not(.notice) a')
+
+page_num = 1
+c = []
+
+while True:
+    params['page'] = page_num
+    resp = requests.get(url, params=params)
+    resp.encoding = 'utf8'
+    dom = BeautifulSoup(resp.content, 'html.parser')
+    for a, b in zip(dom.select('table:not(.notice) a'), dom.select('table:not(.notice) td.w_date')):
+        print('title:',a.text,'\ndate:',b.text,'\n',url+a['href'],'\n')
+        c.extend([re.sub('[\r\n]','',a.text), b.text, url+a['href']])
+    page_num += 1
+    if page_num == 3:
+        break
+
+# 제목, 날짜, 주소 3개의 열을 가진 데이터프레임 만들기
+n = 3
+df_1 = [c[i*n : (i+1)*n] for i in range((len(c) + n - 1) // n )] 
+df = pd.DataFrame.from_records(df_1,columns=('title','date','url'))
+
+conn = sqlite3.connect('sonmin.db')
+cur = conn.cursor()
+
+cur.executescript(''' 
+    DROP TABLE IF EXISTS sonmin;
+    CREATE TABLE sonmin(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    title TEXT  NOT NULL,
+    date  TEXT   NOT NULL,
+    url TEXT NOT NULL
+    );
+''')
+
+conn.commit()
+cur = conn.cursor()
+
+sql = "INSERT INTO sonmin(title, date, url) VALUES(?,?,?)"
+cur.executemany(sql, df_1) # 제목, 날짜, 주소 순으로 DB에 넣기
+
+conn.commit()
+cur.close()
+
+conn = sqlite3.connect('sonmin.db')
+cur = conn.cursor()
+
+# 최신순으로 정렬
+cur.execute("SELECT * FROM sonmin ORDER BY strftime('%Y-%m-%d', date)")
+cur.fetchall()
+
+conn.commit()
+cur.close()
+```
+
+
+
+
+
 ### 2-2. 데이터 전처리/모델링
+
+담당 역할: 이미지 프레임 추출
 
 
 #### [목차로 돌아가기](#목차)
