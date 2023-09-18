@@ -923,6 +923,8 @@ df_EDA = pd.DataFrame(
 이미지는 RGB 채널로 이루어진 3차원 배열입니다.  
 각 이미지에 대한 RGB 채널의 분포를 확인했습니다.  
 
+![EDA](img/EDA.jpg)
+
 ```python
 for i in range(len(folder_list)):
     new_row = [folder_list[i]]
@@ -951,7 +953,6 @@ for i in range(len(folder_list)):
 
 df_EDA # seq_len이 다름
 ```
-![EDA](img/EDA.jpg)
 
 |file_name|seq_len|img_row|img_col|R_min|...|B_std|
 |-|-|-|-|-|-|-|
