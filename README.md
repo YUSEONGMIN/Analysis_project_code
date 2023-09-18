@@ -4,7 +4,6 @@
 
 1. [IPO(기업공개) 수 예측 분석](#1-ipo-수-예측-분석)
 2. [농아인을 위한 수어 번역기 개발](#2-농아인을-위한-수어-번역기-개발)
-3. [분석3](#3-분석3)
 
 ## 1. IPO 수 예측 분석
 
@@ -697,7 +696,7 @@ while True:
     i += 1
 ```
 
-![수어 사전](dictionary)
+![수어사전](dictionary)
 
 수집한 데이터로 웹에서 수어 사전을 추가했습니다.  
 
@@ -950,24 +949,16 @@ for i in range(len(folder_list)):
     # 얻은 정보를 데이터프레임에 추가
     df_EDA.loc[i] = new_row + color
 
-df_EDA
-# seq_len이 다름 -> 통일
+df_EDA # seq_len이 다름
 ```
 
-| title1 | title2 | title3 |
-| --- | --- | --- |
-| 1 | 2 | 3 |
-| 4 | 5 | 6 |
-| 7 | 8 | 9 |
+|file_name|seq_len|img_row|img_col|R_min|...|B_std|
+|-|-|-|-|-|-|-|
+|경제_가격경쟁|14|466|700|0.0|...|0.3128|
+|경제_가격수준|17|466|700|0.0|...|0.3162|
+||||||||
 
-```python
-dataset_annotation = pd.read_excel("수어_데이터셋_어노테이션.xlsx")
-dataset_annotation["file_name"] = dataset_annotation["파일명"].str[:-4]
-dataset_annotation = dataset_annotation[["file_name", "한국어"]]
-# 데이터셋 어노테이션 파일에서 해당 이미지 시계열이 나타내는 한국어를 가져옴
-df_EDA = pd.merge(df_EDA, dataset_annotation, how="outer", on="file_name")
-df_EDA.to_excel("EDA.xlsx", header=True, index=False)
-```
+이미지의 길이가 서로 다른 것을 확인하고 모델에 넣기위해 통일할 필요가 있었습니다.  
 
 ### 이미지 전처리
 
@@ -980,11 +971,6 @@ import pandas as pd
 
 ```python
 def zero_padding_4d(img_seq, max_len):
-    """
-    이미지 시퀸스들 앞에 0으로 된 이미지들 padding
-    텐서플로 모델에 넣기 위해서는 이미지 시퀸스의 길이를 모두 맞춰야 하므로
-    :param max_len: 이미지 시퀸스의 최종 길이
-    """
     img_seq = img_seq.copy()
     # 각 이미지 한 장의 크기
     img_shape = img_seq.shape[1:]
@@ -998,76 +984,59 @@ def zero_padding_4d(img_seq, max_len):
     img_zero = np.zeros((img_augment_len, *img_shape))
     img_seq = np.concatenate([img_zero, img_seq], axis = 0)
     return img_seq
+```
 
-def read_ai (xlen = 1280, ylen = 720):
-    """
-    :param xlen, ylen: 이미지를 원하는 크기로 읽어들이는 것
-    :returns input, output data(리스트 타입) / max_len 이미지 시퀸스의 길이
-    """
-    # 각 이미지 시퀸스는 폴더에 저장되어 있음. 각 폴더가 하나의 데이터
-    target_folder = "video/"
+```python
+def read_ai(xlen = 1280, ylen = 720):
+    target_folder = ".data/img"
     folder_list = os.listdir(target_folder)
-
-    dataset_annotation = pd.read_excel("수어_데이터셋_어노테이션.xlsx")
-    dataset_annotation.loc[(dataset_annotation["한국어"].map(type) == int), "타입(단어/문장)"] = "숫자"
-    dataset_annotation["folder_name"] = dataset_annotation["파일명"].str[:-4]
 
     input_data = []
     output_data = []
-    # 추후에 zero-padding을 위해 이미지 시퀸스의 가장 긴 길이를 체크 해야함
+    # zero-padding을 위해 이미지 시퀸스의 가장 긴 길이를 체크
     img_max_len = 0
     # for i in range(500):
     for i in range(len(folder_list)):
-        img_path = target_folder + "//{0}".format(folder_list[i])
-        # 각 폴더에는 해당하는 이미지들이 저장되어 있기 때문에, 폴더에 접근해서 이미지들을 순차적으로 읽어들임
+        img_path = target_folder + "/{0}".format(folder_list[i])
         img_list = os.listdir(img_path)
         img_list.sort()
-        # 메모리 문제 때문에 해당 수어가 문장 또는 숫자인 경우 제외
-        if dataset_annotation[dataset_annotation["folder_name"] == folder_list[i]].iloc[0]["타입(단어/문장)"] == "문장":
-            continue
-        elif dataset_annotation[dataset_annotation["folder_name"] == folder_list[i]].iloc[0]["타입(단어/문장)"] == "숫자":
-            continue
 
         if len(img_list) > img_max_len:
-            # 이미지 시퀸스의 최대 길이를 갱신
+            # 이미지 시퀸스의 최대 길이 갱신
             img_max_len = len(img_list)
         # 폴더 안에 있는 이미지들을 읽어서 리스트에 저장
         img_seq = []
         for j in range(len(img_list)):
-            image = Image.open(img_path + "//{0}".format(img_list[j]))
+            image = Image.open(img_path + "/{0}".format(img_list[j]))
             image = np.asarray(image, dtype=np.float32)
             # 이미지를 함수 호출자가 원하는 크기로 변경
             image = cv2.resize(image, dsize=(xlen, ylen))
             # 이미지 시퀸스를 만들기 위해 3차원 배열을 4차원 배열로 변환
             image = image.reshape(-1, *image.shape)
             img_seq.append(image)
-        # img_seq 안에 있는 이미지를 모두 concatenate해서 하나의 4차원 배열로 만듦
+        # img_seq 안에 있는 이미지를 모두 concatenate 해서 하나의 4차원 배열로 만듦
         img_seq = np.concatenate(img_seq)
         input_data.append(img_seq)
-        # print("Read {0} Complete".format(i))
-        label = dataset_annotation[dataset_annotation["folder_name"] == folder_list[i]].loc[:, "한국어"].values[0]
+        label = df_EDA[df_EDA["file_name"] == folder_list[i]].loc[:, "file_name"].values[0]
         if type(label) == int:
             label = str(label)
-        # 이미지 시퀸스에 해당하는 한국어 추가
+        # 이미지 시퀸스에 해당하는 뜻 추가
         output_data.append(label)
 
     for i in range(len(input_data)):
-        # input_data를 zero-padding해서 모두 같은 길이로 만들어준다.
+        # input_data를 zero-padding해서 모두 같은 길이로 만듦
         input_data[i] = zero_padding_4d(input_data[i], img_max_len)
 
     return input_data, output_data, img_max_len
+```
 
+Resize와 제로 패딩을 통해 이미지의 길이를 통일하였습니다.  
+
+```python
 def train_test_split(data_X, data_y, category, num=5):
-    """
-    # 한국어를 균일하게 분배하기 위한 train_test_split 함수
-    :param data_X, data_y:
-    :param category: 총 카테고리 숫자
-    :param num: test set으로 분리할 양
-    :return:
-    """
     test_idx = []
     for i in range(category):
-        # 각 한국어에 해당하는 수어 영상 인덱스 추출
+        # 각 의미에 해당하는 수어 영상 인덱스 추출
         cat_idx = np.where(data_y == i)[0]
         # 전체 인덱스에서 원하는 만큼의 인덱스 추출
         cat_test = np.random.choice(cat_idx, size=num, replace=False)
@@ -1081,36 +1050,47 @@ def train_test_split(data_X, data_y, category, num=5):
     return data_X_train, data_y_train, data_X_test, data_y_test
 ```
 
-#### [목차로 돌아가기](#목차)
+이후 모델에 넣을 수 있도록 테스트 데이터와 훈련 데이터로 나누었습니다.  
 
-## 3. 분석3
+### 모델링
 
-ㅁㅁㅁ
+![CNN-LSTM](aaa)
 
-```r
-library(rJava)
-library(KoNLP)
-info <- info %>% 
-  rename(
-    id = `뉴스 식별자`,
-    date = '일자',
-    company = '언론사',
-    author = '기고자',
-    title = '제목',
-    category1 = `통합 분류1`,
-    category2 = `통합 분류2`,
-    category3 = `통합 분류3`,
-    event1 = `사건/사고 분류1`,
-    event2 = `사건/사고 분류2`,
-    event3 = `사건/사고 분류3`, 
-    player = '인물',
-    location = '위치', 
-    organization = '기관',
-    keyword = '키워드',
-    feature = '특성추출'
-  )
+이미지와 시계열의 특징을 반영하기 위해 `CNN-LSTM` 모델을 사용했습니다.  
+모델의 코드는 다음과 같습니다.  
 
+```python
+# Model build
+input_shape = (seq_len, ylen, xlen, 3)
+classes = len(unique)
+inputs = tf.keras.Input(shape = input_shape)
+conv1 = tf.keras.layers.Conv2D(32, (5, 5), activation="relu")
+layer_conv1 = tf.keras.layers.TimeDistributed(conv1)(inputs)
+normal_conv1 = tf.keras.layers.BatchNormalization()(layer_conv1)
+maxpool1 = tf.keras.layers.MaxPooling2D(pool_size=(2,2), strides=(2, 2))
+layer_maxpool1 = tf.keras.layers.TimeDistributed(maxpool1)(normal_conv1)
+conv2 = tf.keras.layers.Conv2D(64, (5, 5), activation="relu")
+layer_conv2 = tf.keras.layers.TimeDistributed(conv2)(layer_maxpool1)
+normal_conv2 = tf.keras.layers.BatchNormalization()(layer_conv2)
+maxpool2 = tf.keras.layers.MaxPooling2D(pool_size=(2,2), strides=(2, 2))
+layer_maxpool2 = tf.keras.layers.TimeDistributed(maxpool2)(normal_conv2)
+
+conv3 = tf.keras.layers.Conv2D(64, (5, 5), activation="relu")
+layer_conv3 = tf.keras.layers.TimeDistributed(conv3)(layer_maxpool2)
+normal_conv3 = tf.keras.layers.BatchNormalization()(layer_conv3)
+maxpool3 = tf.keras.layers.MaxPooling2D(pool_size=(2,2), strides=(2, 2))
+layer_maxpool3 = tf.keras.layers.TimeDistributed(maxpool3)(normal_conv3)
+
+flatten = tf.keras.layers.Flatten()
+layer_flatten = tf.keras.layers.TimeDistributed(flatten)(layer_maxpool3)
+batch_normalization = tf.keras.layers.BatchNormalization()(layer_flatten)
+layer_lstm = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(2 * classes, activation='tanh'))(batch_normalization)
+layer_dropout = tf.keras.layers.Dropout(0.25)(layer_lstm)
+outputs = tf.keras.layers.Dense(classes, activation="softmax")(layer_dropout)
+model = tf.keras.models.Model(inputs = inputs, outputs = outputs)
 ```
+![학습결과](aaa)
+
+학습 결과, `62%`의 정확도 성능을 보여주었습니다.
 
 #### [목차로 돌아가기](#목차)
-
