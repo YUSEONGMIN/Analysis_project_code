@@ -384,6 +384,41 @@ cur = conn.cursor()
 df_1.to_sql('naver_map', conn)
 cur.close()
 
+## 협회/센터 위치 지도로 표시하기
+
+# 필요한 패키지를 불러옵니다.
+import folium
+import sqlite3
+import pandas as pd
+from flask import Flask
+from folium import Marker
+from folium.plugins import MarkerCluster
+
+# 저장된 DB를 불러옵니다.
+conn = sqlite3.connect('naver_map.db')
+df_1 = pd.read_sql("SELECT * FROM naver_map", conn)
+conn.close()
+
+df_1
+
+app = Flask(__name__)
+
+@app.route('/')
+def fomap():
+    m = folium.Map(location=[37.55, 127])
+    mc = MarkerCluster()
+
+    for i in range(len(df_1)):
+        mc.add_child(
+            Marker(location=[df_1.loc[i]['Latitude'],df_1.loc[i]['Longitude']],
+                  popup=df_1.loc[i]['Name']))
+
+    m.add_child(mc)
+    return m.get_root().render()
+
+if __name__ == '__main__':
+    app.run()
+
 # 국립국어원 수어사전 수집
 
 # 필요한 패키지를 불러옵니다.
@@ -479,6 +514,53 @@ while True:
         print('카테고리 끝')
         f.close()
         break
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+
+driver = webdriver.Chrome()
+
+url = 'http://sldict.korean.go.kr/front/sign/signList.do?'
+driver.get(url)
+
+i = 1
+j = 0
+category_list = ['CTE','SPE'] # CTE: 사회생활, SPE: 전문용어
+category = category_list[j]
+down_list = []
+title_list = []
+
+while True:
+    page = str(i)
+#     print("i",page) # 페이지 확인
+    url = 'http://sldict.korean.go.kr/front/sign/signList.do?top_category='+category+'&pageIndex='+page
+    driver.get(url)
+    time.sleep(1)
+    num_content = driver.find_elements(By.XPATH,'//*[@id="list"]/li/div/p[1]/span[1]/a')
+#     print(len(num_content)) # 페이지 내 갯수 확인
+    
+    if len(num_content) == 0:
+        j += 1
+        if j == 2:
+            break
+        category = category_list[j]
+        i = 1
+        continue
+    
+    for k in range(len(num_content)):
+        driver.find_elements(By.XPATH,'//*[@id="list"]/li/div/p[1]/span[1]/a')[k].click()
+        time.sleep(1)
+        # 들어간 후 제목과 영상 추출
+        down_url = driver.find_element(By.XPATH,'//*[@id="html5Video"]/source[2]').get_attribute('src')
+        title = driver.find_element(By.XPATH,'//*[@id="signViewForm"]/dl/dd[1]').text
+        title = re.sub('[^가-힣]','',title)
+        print(down_url, title)
+        down_list.append(down_url)
+        title_list.append(title)
+        driver.back()
+        time.sleep(1)
+            
+    i += 1
 
 ## 한국 농아인협회 공지사항 수집
 
