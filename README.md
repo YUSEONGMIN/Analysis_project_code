@@ -455,13 +455,16 @@ df_1 = pd.read_sql("SELECT * FROM naver_map", conn)
 conn.close()
 df_1
 ```
+DB에 저장된 데이터를 데이터프레임화하고 내용은 다음과 같습니다.
 
-| title1 | title2 | title3 |
-| --- | --- | --- |
-| 1 | 2 | 3 |
-| 4 | 5 | 6 |
-| 7 | 8 | 9 |
+|index|Name|Category|Longitude|Latitude|Address|
+|-|-|-|-|-|-|
+|0|강남구수어통역센터|협회,단체,청각장애|127.04|37.51|서울특별시...|
+|||||||
+|17|경기도협회 성남시지부|협회,단체,청각장애|127.19|37.43|경기도...|
+|||||||
 
+이후 `Flask`로 웹서버를 구축하고 `Folium`을 통해 지도를 구현했습니다.
 
 ```python
 app = Flask(__name__)
