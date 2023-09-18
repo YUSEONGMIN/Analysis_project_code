@@ -831,9 +831,8 @@ file_list
 ['경제_가격경쟁.mp4', '경제_가격수준.mp4', ...]
 """
 ```
-
-영상 처리를 하기 위해 `OpenCV`를 이용했습니다.  
-각 영상마다 0.3초 간격씩 이미지를 추출했습니다.  
+영상은 1초에 30개의 프레임을 연속적으로 보여주는 이미지의 시계열 데이터입니다.  
+`OpenCV`를 이용하여 0.3초마다 동영상의 프레임을 추출했습니다.  
 
 ```python
 def imwrite(filename, img, params=None): # 한글 경로 문제 해결
@@ -921,7 +920,8 @@ df_EDA = pd.DataFrame(
              "B_mean", "B_std"])
 ```
 
-영상은 시계열 이미지, RGB로 이루어진 데이터
+이미지는 RGB 채널로 이루어진 3차원 배열입니다.  
+각 이미지에 대한 RGB 채널의 분포를 확인했습니다.  
 
 ```python
 for i in range(len(folder_list)):
@@ -951,6 +951,7 @@ for i in range(len(folder_list)):
 
 df_EDA # seq_len이 다름
 ```
+![EDA](img/EDA.png)
 
 |file_name|seq_len|img_row|img_col|R_min|...|B_std|
 |-|-|-|-|-|-|-|
