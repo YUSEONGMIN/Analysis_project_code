@@ -159,7 +159,7 @@ def YWE(data,hps): # Yule-Walker Estimator
 데이터 출처: 국내 기업공시채널 [KIND(Korea investor’s network for disclosure system)](https://kind.krx.co.kr)
 
 2000.01 ~ 2022.07 동안의 월별 국내 기업공개(Initial public offering; IPO) 수를 분석했습니다.  
-IPO 데이터는 다음과 같습니다.
+최근 5년의 IPO 데이터의 다음과 같습니다.
 
 |년/월|1|2|3|4|5|6|7|8|9|10|11|12|
 |--|--|--|--|--|--|--|--|--|--|--|--|--|
@@ -199,12 +199,58 @@ results.params
 CLSE(ipo,hps), YWE(ipo,hps)
 ```
 
-|INHAR(3)|CLS|coef.|(s.e.)|YW|coef.|(s.e.)|
-|-|-|-|-|-|-|-|
-|$\alpha_1$||0.3069|(0.0667)||0.3025|(0.0668)|
-|$\alpha_2$||0.1141|(0.1840)||0.1981|(0.1843)|
-|$\alpha_3$||0.3442|(0.1862)||0.3404|(0.1865)|
-|$\lambda$|| 1.6411|(0.6564)||1.1782|(0.6575)|
+<table class="tg">
+<thead>
+  <tr>
+    <th class="tg-baqh"></th>
+    <th class="tg-baqh" colspan="2">CLS</th>
+    <th class="tg-baqh"></th>
+    <th class="tg-baqh" colspan="2">YW</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td class="tg-baqh">INHAR(3)</td>
+    <td class="tg-baqh">coef.</td>
+    <td class="tg-baqh">(s.e.)</td>
+    <td class="tg-baqh"></td>
+    <td class="tg-baqh">coef.</td>
+    <td class="tg-baqh">(s.e.)</td>
+  </tr>
+  <tr>
+    <td class="tg-baqh">$\alpha_1$</td>
+    <td class="tg-baqh">0.3069</td>
+    <td class="tg-baqh">(0.0667)</td>
+    <td class="tg-baqh"></td>
+    <td class="tg-baqh">0.3025</td>
+    <td class="tg-baqh">(0.0668)</td>
+  </tr>
+  <tr>
+    <td class="tg-baqh">$\alpha_2$</td>
+    <td class="tg-baqh">0.1141</td>
+    <td class="tg-baqh">(0.1840)</td>
+    <td class="tg-baqh"></td>
+    <td class="tg-baqh">0.1981</td>
+    <td class="tg-baqh">(0.1843)</td>
+  </tr>
+  <tr>
+    <td class="tg-baqh">$\alpha_3$</td>
+    <td class="tg-baqh">0.3442</td>
+    <td class="tg-baqh">(0.1862)</td>
+    <td class="tg-baqh"></td>
+    <td class="tg-baqh">0.3404</td>
+    <td class="tg-baqh">(0.1865)</td>
+  </tr>
+  <tr>
+    <td class="tg-baqh">$\lambda$</td>
+    <td class="tg-baqh">1.6411</td>
+    <td class="tg-baqh">(0.6564)</td>
+    <td class="tg-baqh"></td>
+    <td class="tg-baqh">1.1782</td>
+    <td class="tg-baqh">(0.6575)</td>
+  </tr>
+</tbody>
+</table>
 
 IPO 데이터의 CLS 추정량과 Yule-Walker 추정량을 계산하고 INHAR 모형에 적합(fitting) 시켰습니다.  
 아래는 CLS 추정량을 통해 적합한 모습입니다.
@@ -298,7 +344,7 @@ https://github.com/bigdata-3team/Sign-Language-Translator
 
 ### 농아인 협회/센터 위치 수집
 
-네이버 지도 api를 이용했습니다.
+농아인 협회/센터 위치 수집하기 위해 네이버 지도 api를 이용했습니다.
 
 ```python
 # 필요한 패키지를 불러옵니다.
@@ -397,7 +443,7 @@ category # 각 리스트마다 하나씩
 """
 ```
 
-category 변수에 들어있는 데이터의 길이들이 통일되지 않아 통일시키는 작업을 했습니다.
+category 열에 들어있는 데이터의 길이가 서로 달라 통일시키는 작업을 했습니다.
 
 ```python
 for i in range(len(category)):
@@ -422,7 +468,7 @@ df_1 = df_1[order]
 ```
 
 전처리된 변수를 추가로 넣고 필요없는 변수는 제거했습니다.  
-변수의 이름 및 순서를 변경하였습니다.  
+이후 변수의 이름 및 순서를 변경하였습니다.  
 
 ```python
 conn = sqlite3.connect('naver_map.db')
@@ -455,7 +501,8 @@ df_1 = pd.read_sql("SELECT * FROM naver_map", conn)
 conn.close()
 df_1
 ```
-DB에 저장된 데이터를 데이터프레임화하고 내용은 다음과 같습니다.
+DB에 저장된 데이터를 분석하기 위해 데이터프레임화 했습니다.  
+데이터의 일부는 다음과 같습니다.
 
 |index|Name|Category|Longitude|Latitude|Address|
 |-|-|-|-|-|-|
@@ -487,9 +534,12 @@ if __name__ == '__main__':
 ```
 ![지도](aaa)
 
-클러스터링 지도를 이용하였고, CSS를 적용하면 이와 같은 모습을 구현할 수 있습니다.
+시각적 효과를 높이기 위해 마커 클러스터링 지도를 이용했습니다.   
+CSS를 적용하면 이와 같은 모습을 구현할 수 있습니다.  
 
 ### 국립국어원 수어사전 수집
+
+국립국어원 사이트에서 수어 영상과 뜻, 제목 등을 추출했습니다.
 
 ```python
 # 필요한 패키지를 불러옵니다.
@@ -519,13 +569,17 @@ params['category'] = 'SPE001'
 resp = requests.get(url, params=params,verify=False)
 dom = BeautifulSoup(resp.text, 'html.parser')
 dom.prettify
+```
 
+웹에서 보여지는 원하는 정보를 수집하기 위해 `CSS3 Selector` 문법을 이용하였습니다.  
+
+```python
 # 단어 카테고리 추출
 dom.select('#menu > div > div > ul > li.on > ul > li > a > span')[0].text
 
 # 단어 제목 추출
 title = dom.select('#list > li > div > p > span.tit > a')[0].text
-re.sub('[^가-힣]','',title)
+re.sub('[^가-힣]','',title) # 개행문자 처리
 
 # 단어 뜻 추출
 mean = dom.select('#list > li > div > p > span.info > a > cite > span')[0].text
@@ -534,10 +588,12 @@ re.sub('[\r\n\t]','',mean)
 # 단어 영상 추출
 s = dom.select('#signListForm > div.result_list.mt_30 > div.wrap_list > ul > li > div.list_left > div > a > img')[1].get('src')
 re.findall('MOV.+',s)[0].replace('215X161.jpg', '700X466.mp4')
+```
 
-# s = s.replace('215X161.jpg', '700X466.mp4')
-# re.findall('MOV.+',s)[0]
+성공적으로 해당 사이트와 요청을 주고 응답을 받아 원하는 정보를 가져온 것을 확인할 수 있습니다.  
+이후 여러 페이지를 수집할 수 있도록 일반화하였습니다.  
 
+```python
 # 크롤링 시작
 url = 'http://sldict.korean.go.kr/front/sign/signList.do'
 
@@ -589,6 +645,9 @@ while True:
         break
 ```
 
+`Selenium`은 크롤링에 필요하지 않은 리소스까지 기다려 속도가 느리지만  
+편하게 수집할 수 있다는 장점이 있습니다.  
+
 ```python
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -638,7 +697,13 @@ while True:
     i += 1
 ```
 
+![수어 사전](dictionary)
+
+수집한 데이터로 웹에서 수어 사전을 추가했습니다.  
+
 ### 한국 농아인협회 공지사항 수집
+
+한국 농아인협회에 올라오는 공지사항 제목과 날짜, 주소를 수집했습니다.  
 
 ```python
 # 필요한 패키지를 불러옵니다.
@@ -662,16 +727,24 @@ params = {
 
 params['page'] = 2
 resp = requests.get(url, params=params)
-resp.encoding = 'utf8'
+resp.encoding = 'utf8' # 인코딩 이슈 해결
 dom = BeautifulSoup(resp.content, 'html.parser')
 dom
+```
 
+성공적으로 응답받은 것을 확인 후, `Selector`를 이용해 공지사항을 수집했습니다.  
+
+```python
 # 공지사항 날짜
 dom.select('table:not(.notice) td.w_date')
 
 # 공지사항 제목과 주소
 dom.select('table:not(.notice) a')
+```
 
+공지사항의 위치를 확인한 후, 여러 페이지에서 수집할 수 있도록 일반화했습니다.  
+
+```python
 page_num = 1
 c = []
 
@@ -686,12 +759,18 @@ while True:
     page_num += 1
     if page_num == 3:
         break
+```
 
+```python
 # 제목, 날짜, 주소 3개의 열을 가진 데이터프레임 만들기
 n = 3
 df_1 = [c[i*n : (i+1)*n] for i in range((len(c) + n - 1) // n )] 
 df = pd.DataFrame.from_records(df_1,columns=('title','date','url'))
+```
 
+수집한 데이터를 정형화하여 데이터프레임으로 만들고, 이후 DB에 저장했습니다.  
+
+```python
 conn = sqlite3.connect('sonmin.db')
 cur = conn.cursor()
 
@@ -713,7 +792,11 @@ cur.executemany(sql, df_1) # 제목, 날짜, 주소 순으로 DB에 넣기
 
 conn.commit()
 cur.close()
+```
 
+최신순으로 공지사항을 보여주기 위해 날짜를 정렬했습니다.  
+
+```python
 conn = sqlite3.connect('sonmin.db')
 cur = conn.cursor()
 
@@ -725,14 +808,11 @@ conn.commit()
 cur.close()
 ```
 
-
-
-
-
 ### 2-2. 데이터 전처리/모델링
 
 담당 역할: 영상 프레임 추출
 
+국립국어원에서 수집한 수어 영상을 분석하기 위해 전처리를 했습니다.  
 
 ```python
 ## 영상 프레임 추출
@@ -747,9 +827,16 @@ import time
 # 영상이 저장된 폴더 확인
 target_folder = "./data/"
 file_list = os.listdir(target_folder + 'video')
-
 file_list
+"""
+['경제_가격경쟁.mp4', '경제_가격수준.mp4', ...]
+"""
+```
 
+영상 처리를 하기 위해 `OpenCV`를 이용했습니다.  
+각 영상마다 0.3초 간격씩 이미지를 추출했습니다.  
+
+```python
 def imwrite(filename, img, params=None): # 한글 경로 문제 해결
     try:
         ext = os.path.splitext(filename)[1]
@@ -764,16 +851,16 @@ def imwrite(filename, img, params=None): # 한글 경로 문제 해결
     except Exception as e:
         print(e)
         return False
+```
 
+```python
 for i in range(len(file_list)):
-    # 동영상 파일명과 같은 폴더 생성
-    new_folder = file_list[i][:-4]  # file_list에 있는 파일 이름은 확장자를 포함
+    new_folder = file_list[i][:-4] # 확장자 제외
     new_path = target_folder + "img/{0}".format(new_folder)
     if not (os.path.isdir(new_path)):
-        # 해당 파일명과 동일한 폴더가 없으면 생성
-        os.mkdir(os.path.join(new_path))
+        os.mkdir(os.path.join(new_path)) # 해당 파일명 없으면 폴더 생성
 
-    # 동영상 읽어서 원하는 부분 캡쳐(0.3초 간격 / 9 Frame)
+    # 0.3초 간격(9 프레임)마다 영상 캡쳐
     file_path = target_folder +'video/'+ file_list[i]
     cap = cv2.VideoCapture(file_path)
     count = 0
@@ -795,6 +882,8 @@ for i in range(len(file_list)):
         time.sleep(5)
 ```
 
+추출된 이미지의 특징을 알아보기 위해 EDA를 했습니다.  
+
 ### 추출된 이미지 EDA
 
 ```python
@@ -810,15 +899,18 @@ import matplotlib.pyplot as plt
 target_folder = "./data/"
 folder_list = os.listdir(target_folder + 'img')
 folder_list
+```
 
+```
+"""
 이미지 데이터 변수 목록
 
 file_name: 이미지 파일 이름
 seq_len: 이미지 시계열 길이
 img_row: 이미지 가로 길이
 img_col: 이미지 세로 길이
-
 RGB: 이미지에서 RGB 채널 각각의 최대, 최소, 중앙값, 평균, 표준편차
+"""
 
 df_EDA = pd.DataFrame(
     columns=["file_name", "seq_len", "img_row", "img_col",
@@ -828,7 +920,11 @@ df_EDA = pd.DataFrame(
              "R_mean", "R_std",
              "G_mean","G_std",
              "B_mean", "B_std"])
+```
 
+영상은 시계열 이미지, RGB로 이루어진 데이터
+
+```python
 for i in range(len(folder_list)):
     new_row = [folder_list[i]]
     img_path = target_folder + "img/{0}".format(folder_list[i])
@@ -856,7 +952,15 @@ for i in range(len(folder_list)):
 
 df_EDA
 # seq_len이 다름 -> 통일
+```
 
+| title1 | title2 | title3 |
+| --- | --- | --- |
+| 1 | 2 | 3 |
+| 4 | 5 | 6 |
+| 7 | 8 | 9 |
+
+```python
 dataset_annotation = pd.read_excel("수어_데이터셋_어노테이션.xlsx")
 dataset_annotation["file_name"] = dataset_annotation["파일명"].str[:-4]
 dataset_annotation = dataset_annotation[["file_name", "한국어"]]
