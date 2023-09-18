@@ -296,9 +296,9 @@ https://github.com/bigdata-3team/Sign-Language-Translator
 
 담당 역할: 농아인 협회 위치, 국립국어원 수어사전, 한국 농아인협회 공지사항 수집
 
-
-
 ### 농아인 협회/센터 위치 수집
+
+네이버 지도 api를 이용했습니다.
 
 ```python
 # 필요한 패키지를 불러옵니다.
@@ -329,8 +329,34 @@ resp = requests.get(url, params=params)
 dom = BeautifulSoup(resp.text, 'html.parser')
 json_obj = json.loads(resp.text)
 
-json_obj # 기관명, 분류, x좌표, y좌표, 주소가 필요
 ```
+
+json_obj 데이터의 형태는 다음과 같습니다.
+
+```
+{'result': {'type': 'place',
+        'metaInfo': {'pageId': '...',
+                     'sessionId': None,
+                            ...      },
+        'address': None,
+        'place': {'page': 1,
+                      ...  ,
+                  'list': [{'index': '0',
+                            'name': '서울특별시농아인협회 강남구지회부설 강남구수어통역센터',
+                                ...    ,
+                            'category': ['협회,단체', '청각장애'],
+                                ...   ,
+                            'address': '서울특별시 강남구 논현동 119 지하2층',
+                                ...
+                            'x': '127.0407623',
+                            'y': '37.5175457',
+                                ...          },
+                            {...}]
+                 },
+        'bus':None}}
+```
+json_obj 데이터에서 기관명, 분류, x좌표, y좌표, 주소가 필요합니다.  
+해당 정보를 추출하기 위한 코드는 다음과 같습니다.
 
 ```python
 k = 1
@@ -357,12 +383,21 @@ while True:
         break
 ```
 
+리스트 형태로 묶여있는 것을 데이터프레임화하여 분석에 용이하게 만들었습니다.
+
 ```python
 df_1 = pd.DataFrame(second) # name, category, x, y, address가 변수로
 category = df_1[1].values # 1번째 변수 = category
 category = category.tolist()
 category # 각 리스트마다 하나씩
+
+"""
+[['협회,단체', '청각장애'],
+ ['협회,단체'], ...]
+"""
 ```
+
+category 변수에 들어있는 데이터의 길이들이 통일되지 않아 통일시키는 작업을 했습니다.
 
 ```python
 for i in range(len(category)):
@@ -375,31 +410,33 @@ for i in range(len(category)):
     category[i] = ctg
 category
 
+"""
+['협회,단체,청각장애', ..., '협회,단체', ...]
+"""
+
 df_1["Category"] = category
-
 del df_1[1]
-
 df_1.columns = ["Name", "Longitude", "Latitude", "Address", "Category"]
 order = ["Name", "Category", "Longitude", "Latitude", "Address"]
 df_1 = df_1[order]
 ```
 
+전처리된 변수를 추가로 넣고 필요없는 변수는 제거했습니다.  
+변수의 이름 및 순서를 변경하였습니다.  
+
 ```python
 conn = sqlite3.connect('naver_map.db')
 cur = conn.cursor()
-
-cur.executescript(''' 
-    DROP TABLE IF EXISTS sonmin;
-''')
-
-conn.commit()
-cur = conn.cursor()
-
 df_1.to_sql('naver_map', conn)
 cur.close()
 ```
 
+마지막 전처리 후 데이터베이스에 저장하였습니다.  
+
 ### 협회/센터 위치 지도로 표시하기
+
+`Flask`로 웹 서버를 구축한 후,  
+`Folium`과 `SQLite3`을 이용해 DB에 저장된 위치를 웹에 표현했습니다.
 
 ```python
 # 필요한 패키지를 불러옵니다.
@@ -416,9 +453,15 @@ from folium.plugins import MarkerCluster
 conn = sqlite3.connect('naver_map.db')
 df_1 = pd.read_sql("SELECT * FROM naver_map", conn)
 conn.close()
-
 df_1
 ```
+
+| title1 | title2 | title3 |
+| --- | --- | --- |
+| 1 | 2 | 3 |
+| 4 | 5 | 6 |
+| 7 | 8 | 9 |
+
 
 ```python
 app = Flask(__name__)
@@ -439,6 +482,9 @@ def fomap():
 if __name__ == '__main__':
     app.run()
 ```
+![지도](aaa)
+
+클러스터링 지도를 이용하였고, CSS를 적용하면 이와 같은 모습을 구현할 수 있습니다.
 
 ### 국립국어원 수어사전 수집
 
