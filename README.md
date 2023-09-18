@@ -284,6 +284,9 @@ Efficiency를 계산한 결과, 기존 INAR 모형보다 성능을 최대 12% �
 
 ## 2. 농아인을 위한 수어 번역기 개발
 
+해당 프로젝트 주소는  
+https://github.com/bigdata-3team/Sign-Language-Translator
+
 ### 소목차
 
 2-1. [데이터 수집](#2-1-데이터-수집)  
@@ -294,9 +297,10 @@ Efficiency를 계산한 결과, 기존 INAR 모형보다 성능을 최대 12% �
 담당 역할: 농아인 협회 위치, 국립국어원 수어사전, 한국 농아인협회 공지사항 수집
 
 
-```python
-## 농아인 협회/센터 위치 수집
 
+### 농아인 협회/센터 위치 수집
+
+```python
 # 필요한 패키지를 불러옵니다.
 import time
 import json
@@ -304,7 +308,9 @@ import sqlite3
 import requests
 import pandas as pd
 from bs4 import BeautifulSoup
+```
 
+```python
 url = 'https://map.naver.com/v5/api/search'
 
 params = {
@@ -324,7 +330,9 @@ dom = BeautifulSoup(resp.text, 'html.parser')
 json_obj = json.loads(resp.text)
 
 json_obj # 기관명, 분류, x좌표, y좌표, 주소가 필요
+```
 
+```python
 k = 1
 second=[]
 while True:
@@ -347,12 +355,16 @@ while True:
     
     if len(json_obj['result']['place']['list']) == 0:
         break
+```
 
+```python
 df_1 = pd.DataFrame(second) # name, category, x, y, address가 변수로
 category = df_1[1].values # 1번째 변수 = category
 category = category.tolist()
 category # 각 리스트마다 하나씩
+```
 
+```python
 for i in range(len(category)):
     element = category[i]
     ctg = ""
@@ -370,7 +382,9 @@ del df_1[1]
 df_1.columns = ["Name", "Longitude", "Latitude", "Address", "Category"]
 order = ["Name", "Category", "Longitude", "Latitude", "Address"]
 df_1 = df_1[order]
+```
 
+```python
 conn = sqlite3.connect('naver_map.db')
 cur = conn.cursor()
 
@@ -383,9 +397,11 @@ cur = conn.cursor()
 
 df_1.to_sql('naver_map', conn)
 cur.close()
+```
 
-## 협회/센터 위치 지도로 표시하기
+### 협회/센터 위치 지도로 표시하기
 
+```python
 # 필요한 패키지를 불러옵니다.
 import folium
 import sqlite3
@@ -393,14 +409,18 @@ import pandas as pd
 from flask import Flask
 from folium import Marker
 from folium.plugins import MarkerCluster
+```
 
+```python
 # 저장된 DB를 불러옵니다.
 conn = sqlite3.connect('naver_map.db')
 df_1 = pd.read_sql("SELECT * FROM naver_map", conn)
 conn.close()
 
 df_1
+```
 
+```python
 app = Flask(__name__)
 
 @app.route('/')
@@ -418,16 +438,20 @@ def fomap():
 
 if __name__ == '__main__':
     app.run()
+```
 
-# 국립국어원 수어사전 수집
+### 국립국어원 수어사전 수집
 
+```python
 # 필요한 패키지를 불러옵니다.
 import re
 import requests
 from bs4 import BeautifulSoup
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+```
 
+```python
 url = 'http://sldict.korean.go.kr/front/sign/signList.do'
 
 params = {
@@ -514,7 +538,9 @@ while True:
         print('카테고리 끝')
         f.close()
         break
+```
 
+```python
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
@@ -561,16 +587,20 @@ while True:
         time.sleep(1)
             
     i += 1
+```
 
-## 한국 농아인협회 공지사항 수집
+### 한국 농아인협회 공지사항 수집
 
+```python
 # 필요한 패키지를 불러옵니다.
 import re
 import sqlite3
 import requests
 import pandas as pd
 from bs4 import BeautifulSoup
+```
 
+```python
 url = 'http://www.deafkorea.com/sub_customer/notice.php'
 
 params = {
@@ -662,7 +692,9 @@ cur.close()
 import os
 import cv2
 import time
+```
 
+```python
 # 영상이 저장된 폴더 확인
 target_folder = "./data/"
 file_list = os.listdir(target_folder + 'video')
@@ -712,16 +744,20 @@ for i in range(len(file_list)):
     cap.release()
     if (i % 10) == 9 :
         time.sleep(5)
+```
 
-## 추출된 이미지 EDA
+### 추출된 이미지 EDA
 
+```python
 # 필요한 패키지를 불러옵니다.
 import os
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+```
 
+```python
 target_folder = "./data/"
 folder_list = os.listdir(target_folder + 'img')
 folder_list
@@ -778,14 +814,18 @@ dataset_annotation = dataset_annotation[["file_name", "한국어"]]
 # 데이터셋 어노테이션 파일에서 해당 이미지 시계열이 나타내는 한국어를 가져옴
 df_EDA = pd.merge(df_EDA, dataset_annotation, how="outer", on="file_name")
 df_EDA.to_excel("EDA.xlsx", header=True, index=False)
+```
 
-## 이미지 전처리
+### 이미지 전처리
 
+```python
 # 필요한 패키지를 불러옵니다.
 import os
 import numpy as np
 import pandas as pd
+```
 
+```python
 def zero_padding_4d(img_seq, max_len):
     """
     이미지 시퀸스들 앞에 0으로 된 이미지들 padding
