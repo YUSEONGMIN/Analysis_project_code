@@ -951,7 +951,7 @@ for i in range(len(folder_list)):
 
 df_EDA # seq_len이 다름
 ```
-![EDA](img/EDA.png)
+![EDA](img/EDA.jpg)
 
 |file_name|seq_len|img_row|img_col|R_min|...|B_std|
 |-|-|-|-|-|-|-|
