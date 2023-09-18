@@ -531,7 +531,7 @@ def fomap():
 if __name__ == '__main__':
     app.run()
 ```
-![지도](aaa)
+![지도](img/map.png)
 
 시각적 효과를 높이기 위해 마커 클러스터링 지도를 이용했습니다.   
 CSS를 적용하면 이와 같은 모습을 구현할 수 있습니다.  
@@ -696,7 +696,7 @@ while True:
     i += 1
 ```
 
-![수어사전](dictionary)
+![수어사전](img/dictionary.png)
 
 수집한 데이터로 웹에서 수어 사전을 추가했습니다.  
 
@@ -1054,7 +1054,7 @@ def train_test_split(data_X, data_y, category, num=5):
 
 ### 모델링
 
-![CNN-LSTM](aaa)
+![CNN-LSTM](img/model.png)
 
 이미지와 시계열의 특징을 반영하기 위해 `CNN-LSTM` 모델을 사용했습니다.  
 모델의 코드는 다음과 같습니다.  
@@ -1089,8 +1089,8 @@ layer_dropout = tf.keras.layers.Dropout(0.25)(layer_lstm)
 outputs = tf.keras.layers.Dense(classes, activation="softmax")(layer_dropout)
 model = tf.keras.models.Model(inputs = inputs, outputs = outputs)
 ```
-![학습결과](aaa)
+![학습결과](img/learn.jpg)
 
-학습 결과, `62%`의 정확도 성능을 보여주었습니다.
+학습 결과, **62%** 의 정확도 성능을 보여주었습니다.
 
 #### [목차로 돌아가기](#목차)
