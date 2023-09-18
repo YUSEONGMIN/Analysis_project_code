@@ -934,5 +934,30 @@ def train_test_split(data_X, data_y, category, num=5):
 
 ㅁㅁㅁ
 
+```r
+library(rJava)
+library(KoNLP)
+info <- info %>% 
+  rename(
+    id = `뉴스 식별자`,
+    date = '일자',
+    company = '언론사',
+    author = '기고자',
+    title = '제목',
+    category1 = `통합 분류1`,
+    category2 = `통합 분류2`,
+    category3 = `통합 분류3`,
+    event1 = `사건/사고 분류1`,
+    event2 = `사건/사고 분류2`,
+    event3 = `사건/사고 분류3`, 
+    player = '인물',
+    location = '위치', 
+    organization = '기관',
+    keyword = '키워드',
+    feature = '특성추출'
+  )
+
+```
+
 #### [목차로 돌아가기](#목차)
 
