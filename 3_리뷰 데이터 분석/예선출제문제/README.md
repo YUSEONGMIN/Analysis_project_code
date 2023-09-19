@@ -191,10 +191,11 @@ estimator_results[0].best_score_, estimator_results[1].best_score_
 feature_name = X.columns.to_numpy()
 feature_name[estimator_results[0].best_estimator_.coef_.argsort()[::-1]]
 ```
-> array([['다신','다시는','불친절',...,','맛있고','맛있어요']], dtype=object)
+> array([['다신','다시는','불친절',...,','맛있고','맛있어요']], dtype=object)  
+> array([[-1.40, -1.35, -1.31, ...,      1.47, 2.02]])  
 
 Coefficient를 내림차순 후 각각의 Feature를 확인했습니다.  
-부정적인 단어들이 크고, 긍정적인 단어들은 반대로 작은 것을 확인할 수 있었습니다.  
+부정적일수록 더 작게, 긍정적일수록 더 큰 값을 가지는 것을 확인할 수 있었습니다.  
 
 ```python
 #가장 좋은 모델 설정
