@@ -166,10 +166,23 @@ X_test = test.copy()
 final_pred = model.predict(X_test)
 ```
 
-
 ## 3. 딥러닝
 
 ### 탐색적 자료분석
+
+딥러닝의 데이터셋의 형태를 알아보았습니다.  
+
+```python
+X_train, y_train
+X_train.shape, y_train.shape
+```
+![X_train](img/X_train.jpeg) ![y_train](img/y_train.jpeg)
+
+> ((600, 32, 32, 3), (600, ))
+
+각 class마다 200개씩 있으며 총 600장으로 이루어져 있습니다.  
+이미지의 shpae은 (32, 32, 3)로 RGB 채널을 갖고있는 32x32 이미지 입니다.  
+
 
 ### 모델링
 
