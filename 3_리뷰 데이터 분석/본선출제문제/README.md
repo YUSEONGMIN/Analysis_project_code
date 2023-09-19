@@ -54,7 +54,52 @@ train.head(5)
 | label 3 | label 4 | label 5 |
 | 1~200번째 | 201~400번째 | 401~600번째 |
 
+```python
+from sklearn.model_selection import train_test_split
+X_train, X_vld, y_train, y_vld = train_test_split(X, y, random_state=42, test_size = .2)
+X_train.shape, X_vld.shape, y_train.shape, y_vld.shape
+```
+> ((480, 3072), (120, 3072), (480,), (120,))
+
+600개의 이미지 중 480장으로 학습에 이용하였고,  
+나머지 120장은 Validation으로 구성하여 성능을 검증하는데 이용했습니다.
+
 ### 모델링
+
+분류 모델로 로지스틱 회귀모델과 K-최근접 이웃(KNN) 모델을 이용했습니다.  
+
+KNN 모델의 특징은 비모수적 방법을 이용하며,  
+높은 정확도를 가지지만 cost가 많이 든다는 단점이 있습니다.
+
+```python
+# 필요한 패키지를 불러옵니다.
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+```
+
+```python
+algorithmes = [LogisticRegression(), KNeighborsClassifier(n_jobs=-1)]
+
+##실험 파라미터 셋팅###
+params = []
+params.append([{
+    "solver" : ["saga"],
+    "penalty" : ["l1"],
+    "C" : [0.1,  5.0, 7.0, 10.0, 15.0, 20.0, 100.0]
+    },{
+    "solver" : ['liblinear'],
+    "penalty" : ["l2"],
+    "C" : [0.1,  5.0, 7.0, 10.0, 15.0, 20.0, 100.0]
+    }
+    ]) #Logistic Regression 하이퍼 파라미터
+
+params.append({
+    "p":[int(i) for i in range(1,3)],
+    "n_neighbors":[i for i in range(2, 6)]}) #KNN 하이퍼 파라미터
+```
+
 
 ### 분석 결과
 
