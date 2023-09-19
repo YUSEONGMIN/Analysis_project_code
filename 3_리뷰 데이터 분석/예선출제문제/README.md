@@ -140,31 +140,15 @@ feature_name[estimator_results[0].best_estimator_.coef_.argsort()[::-1]][:30]
 
 ```python
 #가장 좋은 모델 설정
-model = estimator_results[0].best_estimator_
-model.fit(X_train, y_train)
+final_model = estimator_results[0].best_estimator_
+final_model.fit(X, y)
 ```
 
 
 ```python
-# validation 예측
-pred = model.predict(X_vld)
-
-# validation set 성능 확인
-print(classification_report(y_vld, pred))
-print(confusion_matrix(y_vld, pred))
+X_test = test.drop(columns='Id')
+y_pred = final_model.predict(X_test)
 ```
-
-
-```python
-# 전체데이터로 학습하기
-model.fit(X, y)
-
-# 테스트 데이터 복사
-X_test = test.copy()
-final_pred = model.predict(X_test)
-```
-
-
 
 
 ## 4. 정리
