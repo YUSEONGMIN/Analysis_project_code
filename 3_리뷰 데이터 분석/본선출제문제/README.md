@@ -126,7 +126,8 @@ model = estimator_results[0].best_estimator_
 model.fit(X_train, y_train)
 ```
 
-이후 Validation set의 성능을 평가하고 정확도를 확인했습니다.  
+이후 Validation set을 통해 모델의 성능을 검증하고  
+분류결과 표를 그려보았습니다.  
 
 ```python
 # validation 예측
@@ -137,7 +138,33 @@ print(classification_report(y_vld, pred))
 print(confusion_matrix(y_vld, pred))
 ```
 
+||precision|recall|f1-score|support|
+|-|-|-|-|-|
+|3|0.74|0.53|0.62|43|
+|4|0.73|0.97|0.83|36|
+|5|0.71|0.71|0.71|41|
+||||||
+|**accuracy**|||||0.73|120|
+|**macro avg**|0.73|0.74|0.72|120|
+|**weighted avg**|0.73|0.72|0.71|120|
 
+| 만두 | 새우튀김 | 순대 |
+| --- | --- | --- |
+| 23 | 8 | 12 |
+| 1 | 35 | 0 |
+| 7 | 5 | 29 |
+
+Validation set을 검증한 결과, 로지스틱 회귀모델의 정확도는 **73%** 가 나왔습니다.  
+Validation 120장을 추가하여 600장을 학습시킨 후, Test 데이터를 예측했습니다.
+
+```python
+# 전체데이터로 학습하기
+model.fit(X, y)
+
+# 테스트 데이터 복사
+X_test = test.copy()
+final_pred = model.predict(X_test)
+```
 
 
 ## 3. 딥러닝
