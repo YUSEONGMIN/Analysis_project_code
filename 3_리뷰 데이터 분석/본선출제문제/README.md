@@ -10,9 +10,18 @@
 
 ![problem](img/1_camp_exam.png)
 
-리뷰 사진을 이용하여 만두, 새우튀김, 순대를 분류하는 문제
+리뷰 사진을 이용하여 만두, 새우튀김, 순대를 분류하는 문제입니다.  
 
 ## 2. 탐색적 자료분석
+
+```python
+# 필요한 패키지를 불러옵니다.
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+```
+
+
 
 | 만두 | 새우튀김 | 순대 |
 | --- | --- | --- |
