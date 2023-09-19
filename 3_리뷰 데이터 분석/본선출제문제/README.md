@@ -238,10 +238,9 @@ model.compile(loss='categorical_crossentropy',
 model.summary()       
 ```
 
-CNN 구조는  
+CNN 구조는 다음과 같습니다.  
 input layer -> Conv1 -> Maxpool1 -> Conv2 -> Maxpool2 -> Conv3 -> flatten -> Dense1 -> ouput layer  
-
-하기위해 활성 함수는 `Relu`를 이용했습니다.  
+`기울기 소실(Vanishing gradient)` 현상을 해결하기 위해 활성 함수는 `Relu`를 이용했습니다.  
 
 ```python
 # Early Stopping -> overfitting 방지
