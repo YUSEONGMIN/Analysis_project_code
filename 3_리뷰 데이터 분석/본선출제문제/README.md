@@ -31,7 +31,7 @@ import matplotlib.pyplot as plt
 ```python
 train.shape, test.shape
 train.head(5)
-#3072개의 픽셀과 label
+# 3072개의 픽셀과 label
 ```
 > ((600,3073), (300, 3072))
 
@@ -82,8 +82,10 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 ```python
 algorithmes = [LogisticRegression(), KNeighborsClassifier(n_jobs=-1)]
 
-##실험 파라미터 셋팅###
+# 실험 파라미터 설정
 params = []
+
+# Logistic Regression 하이퍼 파라미터
 params.append([{
     "solver" : ["saga"],
     "penalty" : ["l1"],
@@ -93,12 +95,30 @@ params.append([{
     "penalty" : ["l2"],
     "C" : [0.1,  5.0, 7.0, 10.0, 15.0, 20.0, 100.0]
     }
-    ]) #Logistic Regression 하이퍼 파라미터
+    ])
 
+# KNN 하이퍼 파라미터
 params.append({
     "p":[int(i) for i in range(1,3)],
-    "n_neighbors":[i for i in range(2, 6)]}) #KNN 하이퍼 파라미터
+    "n_neighbors":[i for i in range(2, 6)]})
+
+# 5 - Fold Cross Validation & Accuracy
+scoring = ['accuracy']
+estimator_results = []
+for i, (estimator, params) in enumerate(zip(algorithmes,params)):
+    gs_estimator = GridSearchCV(
+            refit="accuracy", estimator=estimator,param_grid=params, scoring=scoring, cv=5, verbose=1, n_jobs=4)
+    print(gs_estimator)
+
+    gs_estimator.fit(X, y)
+    estimator_results.append(gs_estimator)
 ```
+
+Grid Search 방법으로 모델의 하이퍼 파라미터를 찾고,  
+5-Fold 교차 검증을 통해 가장 좋았던 파라미터를 찾았습니다.  
+
+Logistic의 가장 좋은 성능은 **0.7433** 이며, KNN의 가장 좋은 성능은 **0.5983** 으로 나왔습니다.  
+
 
 
 ### 분석 결과
