@@ -170,21 +170,73 @@ final_pred = model.predict(X_test)
 
 ### 탐색적 자료분석
 
-딥러닝의 데이터셋의 형태를 알아보았습니다.  
+딥러닝의 데이터셋은 머신러닝과 동일하며, 데이터의 형태를 알아보았습니다.  
 
 ```python
 X_train, y_train
 X_train.shape, y_train.shape
 ```
-![X_train](img/X_train.jpeg) ![y_train](img/y_train.jpeg)
+
+<img src="img/X_train.jpeg" width="300" height="300"/> <img src="img/y_train.jpeg" width="300" height="300"/>  
 
 > ((600, 32, 32, 3), (600, ))
 
 각 class마다 200개씩 있으며 총 600장으로 이루어져 있습니다.  
 이미지의 shpae은 (32, 32, 3)로 RGB 채널을 갖고있는 32x32 이미지 입니다.  
 
+머신러닝과 동일하게 전체 이미지 중 480장을 학습에 이용하고,  
+나머지 120장은 Validation으로 구성하여 성능 검증에 이용했습니다.  
+
+```python
+from sklearn.model_selection import train_test_split
+X_train, X_vld, y_train, y_vld = train_test_split(X_train, y_train, random_state=42, test_size = .2)
+X_train.shape, X_vld.shape, y_train.shape, y_vld.shape
+```
 
 ### 모델링
+
+```python
+# 필요한 패키지를 불러옵니다.
+from keras.models import Sequential
+from keras.layers import Dense, Conv2D, MaxPooling2D, Dropout, Flatten
+from keras.callbacks import ModelCheckpoint, EarlyStopping
+from keras.utils import np_utils
+```
+
+```python
+y_train = y_train-3
+y_vld = y_vld-3
+y_train = np_utils.to_categorical(y_train, 3)
+y_vld= np_utils.to_categorical(y_vld, 3)
+
+y_train
+"""
+array([0, 0, 1, ... ]) -> array([[1., 0., 0.],
+                                 [1., 0., 0.],
+                                 [0., 1., 0.], ...]])
+"""
+```
+
+3, 4, 5로 되어있는 라벨을 0, 1, 2로 바꾸기 위해 3을 빼고 `One-hot encoding`을 했습니다.  
+이미지의 특성을 반영하기 위해 `CNN` 모델을 사용했습니다.  
+
+```python
+# CNN 구조
+model = Sequential()
+model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(32, 32, 3)))
+model.add(MaxPooling2D((2, 2)))
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(MaxPooling2D((2, 2)))
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(Flatten())
+model.add(Dense(128, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(3, activation='softmax'))
+model.compile(loss='categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+model.summary()       
+```
 
 
 
