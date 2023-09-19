@@ -218,7 +218,7 @@ array([0, 0, 1, ... ]) -> array([[1., 0., 0.],
 ```
 
 3, 4, 5로 되어있는 라벨을 0, 1, 2로 바꾸기 위해 3을 빼고 `One-hot encoding`을 했습니다.  
-이미지의 특성을 반영하기 위해 `CNN` 모델을 사용했습니다.  
+이미지의 특징을 찾기 위해 `CNN` 모델을 사용했습니다.  
 
 ```python
 # CNN 구조
@@ -238,6 +238,80 @@ model.compile(loss='categorical_crossentropy',
 model.summary()       
 ```
 
+CNN 구조는  
+input layer -> Conv1 -> Maxpool1 -> Conv2 -> Maxpool2 -> Conv3 -> flatten -> Dense1 -> ouput layer  
 
+하기위해 활성 함수는 `Relu`를 이용했습니다.  
+
+```python
+# Early Stopping -> overfitting 방지
+cb_early_stopping = EarlyStopping(monitor='val_loss', patience=10)
+
+history = model.fit(X_train, y_train,
+                    validation_data=(X_vld, y_vld),
+                    epochs=100, batch_size=64, verbose=1,
+                    callbacks=[cb_early_stopping])
+
+print('\nAccuracy: {:.4f}'.format(model.evaluate(X_vld, y_vld)[1]))
+```
+
+과적합을 방지하기 위해 `Early Stopping`의 판정 기준 지표를 val_loss로 지정했습니다.  
+10 epoch 연속으로 val_loss가 개선되지 않을 때 종료되도록 했습니다.  
+그 결과 CNN 모델의 Accuracy는 **81%** 가 나왔습니다.  
+
+이후 Validation set을 가지고 모델의 성능을 검증했습니다.  
+
+```python
+# validation 예측
+pred = np.argmax(model.predict(X_vld), axis=-1)
+pred += 3
+y_vld = y_vld.argmax(axis = 1) + 3
+```
+
+pred에 3을 더해 다시 3, 4, 5로 바꾸었습니다.  
+마찬가지로 y_vld.argmax(axis = 1)에 3을 더해 `One-hot encoding`을 원래 class로 바꾸었습니다.
+
+```python
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+print(classification_report(y_vld, pred))
+print(confusion_matrix(y_vld, pred))
+```
+
+||precision|recall|f1-score|support|
+|-|-|-|-|-|
+|3|0.79|0.72|0.76|43|
+|4|0.78|1.00|0.88|36|
+|5|0.89|0.76|0.82|41|
+||||||
+|**accuracy**|||||0.82|120|
+|**macro avg**|0.82|0.83|0.82|120|
+|**weighted avg**|0.82|0.82|0.81|120|
+
+| 만두 | 새우튀김 | 순대 |
+| --- | --- | --- |
+| 31 | 8 | 4 |
+| 0 | 36 | 0 |
+| 8 | 2 | 31 |
+
+Validation set을 검증한 결과, CNN 모델의 정확도는 **82%** 가 나왔습니다.  
+이후 학습된 모델에 Validation 120장을 추가로 다시 학습시켜 `Fine Tuning`을 했습니다.  
+이 모델을 최종 모델로 하여 Test 데이터를 예측했습니다.
+
+```python
+# one hot encoding
+y_vld -= 3
+y_vld= np_utils.to_categorical(y_vld, 3)
+model.fit(X_vld, y_vld, epochs=10, batch_size=64, verbose=1)
+
+final_pred = np.argmax(model.predict(X_test), axis=-1)
+final_pred += 3
+```
 
 ## 4. 정리
+
+머신러닝과 딥러닝 모델의 성능을 비교한 결과,  
+로지스틱 회귀모델의 성능은 0.73, CNN 모델의 성능은 0.81로 CNN 모델이 더 좋게 나왔습니다.  
+
+음식점 리뷰 데이터를 분석하면서 이런 식으로 마케팅에 활용될 수 있다는 것을 배웠고,  
+리뷰를 자동으로 수집/분석한 결과를 사장님에게 음식과 가게 운영에 대한 피드백을 제공해주고  
+메뉴판이나 가게 전단지 등도 이미지를 자동으로 생성해주는 미래가 올 수도 있겠다라는 인사이트를 보았습니다.  
