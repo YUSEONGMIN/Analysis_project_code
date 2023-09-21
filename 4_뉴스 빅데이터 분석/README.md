@@ -11,7 +11,7 @@
 1. [카테고리 분류](#1-기사-카테고리-분류)
 2. [네트워크 분석](#2-네트워크-분석)
 
-### 1. 기사 카테고리 분류
+### 1. 카테고리 분류
 
 ```R
 # 필요한 패키지를 불러옵니다.
@@ -163,7 +163,7 @@ network %>%
   ggraph(layout='graphopt') + geom_node_text(aes(label=name)) + geom_edge_link(aes(start_cap = label_rect(node1.name), end_cap = label_rect(node2.name)))
 ```
 
-![네트워크 분석](network.jpg)
+![네트워크 분석](Network.png)
 
 매개 중심성을 계산하면 누가 누구와 많이 연결되었는지 알 수 있습니다.  
 
