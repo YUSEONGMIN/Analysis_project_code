@@ -1,10 +1,10 @@
-# 1. Classify
+# 1. 분류
 
 # 필요한 패키지를 불러옵니다.
 library(readxl)
 library(dplyr)
 library(stringr)
-library('lubridate')
+library(lubridate)
 library(tidyr)
 
 data <- read_excel("sample.xlsx")
