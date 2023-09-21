@@ -199,6 +199,15 @@ contents <- tempdata$contents
 head(contents)
 ```
 
+수집한 기사 내용들은 다음과 같습니다.  
+
+||
+|-|
+|"한겨레-부산 국제심포지엄 이틀째인..."|
+|"일본 정부는 한일..."|
+|"한 일 군사정보보호..."|
+||
+
 ```R
 mergeUserDic(data.frame(c("개깜놀","핵존맛","JMT"), c("ncn")))
 ```
@@ -212,7 +221,9 @@ mergeUserDic(data.frame(c("개깜놀","핵존맛","JMT"), c("ncn")))
 # 명사를 추출
 txt <- extractNoun (contents)
 head(txt)
+```
 
+```R
 # 우리가 원하지 않는 요소들을 추출
 # 추출 함수 gsub 사용
 # gsub은 문자열의 특정 부분을 지정하여 변환하는 기능을 수행
