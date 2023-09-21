@@ -253,9 +253,9 @@ txt_data <- gsub("[^[:print:]]","",txt_data)
 # 기호 삭제
 txt_data <- gsub("▲","",txt_data)
 txt_data <- gsub("◎","",txt_data)
-
-head(txt_data)
 ```
+
+
 
 ```R
 docs <- Corpus(VectorSource(txt_data))
@@ -269,6 +269,21 @@ inspect(dtma)
 raw.sum <- apply(dtma,1,FUN=sum)
 dtma=dtma[raw.sum!=0,]
 ```
+
+|DocumentTermMatrix|documents: 1629, terms: 315|
+|-|-|
+|Non-/sparse entries|37114/476021|
+|Sparsity|93%|
+|Maximal term length|12|
+|Weighting|term frequency (tf)|
+
+|Docs/Terms|것|당|대표|미국|미아|...|
+|-|-|-|-|-|-|-|
+|1016|0|0|0|2|0|...|
+|1021|0|0|0|1|3|...|
+|254|0|3|3|0|1|...|
+||||||||
+
 
 ```R
 # 전체 LDA
@@ -303,7 +318,6 @@ topterms %>%
 
 ![LDA](img/LDA.png)
 
-
 ```R
 spread <- topterms %>%
   mutate(topic = paste0("topic", topic)) %>%
@@ -314,3 +328,10 @@ spread <- topterms %>%
 spread
 ```
 
+|term|topic1|topic2|topic3|topic4|log_ratio|
+|-|-|-|-|-|-|
+|기자| |0.0187|0.0179| | |
+|당| |0.0394| |0.0145| |
+|대표| |0.0410| |0.0145| |
+|||||||
+|한국|0.0155|0.0172|0.0206|0.0341|0.142|
