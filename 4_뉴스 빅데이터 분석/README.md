@@ -32,6 +32,10 @@ head(data)
 |||||||...|||
 |081..|20191121|KBS|이세연|"여야,.."|정치>국회_정당|...|http..|중복||
 
+수집한 기사 데이터는 위와 같습니다.  
+변수는 아래 16개와	본문, URL, 분석제외 여부까지 총 19개의 변수가 있습니다.  
+변수명이 한글일 경우, 오류가 날 수 있어 영어로 변환했습니다.  
+
 ```R
 # 기사의 정보가 있는 16개의 변인 가져오기
 info <- data %>% select(1:16)
@@ -75,7 +79,49 @@ info %>%
 |||
 
 총 43개의 언론사가 있었으며, 가장 많이 수집된 언론사는 YTN으로 199개가 나왔습니다.  
+이후 기사의 카테고리를 확인했습니다.  
 
+```R
+# 카테고리 정보 확인
+category <- info$category1
+str_split(category, pattern=">")
+
+# 카테고리 정보 나누기
+info %>% 
+  separate(category1, c("ct1","ct2"),
+           sep=">",remove=F,extra="merge",fill="right") %>% 
+  select(category1,ct1,ct2)
+```
+
+|category1|ct1|ct2|
+|-|-|-|
+|국제>국제일반|국제|국제일반|
+|정치>외교|정치|외교|
+|정치>국회_정당|정당|국회_정당|
+||||
+
+기사의 카테고리를 세분화하여 나누었고, 그 중 "국회_정당"을 한번 더 나누었습니다.
+
+```R
+# 정치>국회_정당 하위 분류
+info %>% 
+  separate(category1, c("ct1","ct2"),
+           sep=">",remove=F,extra="merge",fill="right") %>% 
+  separate(ct1, c("ct1a","ct1b"),
+           sep="_",remove=F,extra="merge",fill="right") %>% 
+  separate(ct2, c("ct2a","ct2b"),
+           sep="_",remove=F,extra="merge",fill="right") %>% 
+  select(category1,starts_with("ct")) 
+
+firstct <- info %>% 
+  separate(category1, c("ct1","ct2"),
+           sep=">",remove=F,extra="merge",fill="left") %>% 
+  separate(ct1, c("ct1a","ct1b"),sep="_",remove=F,extra="merge",fill="left") %>% 
+  separate(ct2, c("ct2a","ct2b"),sep="_",remove=F,extra="merge",fill="left") %>% 
+  select(ct1a, ct1b, ct2a,ct2b) 
+
+table(c(firstct$ct1a,firstct$ct1b,firstct$ct2a,firstct$ct2b))  
+```
 
 
 ### LDA
