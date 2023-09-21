@@ -14,7 +14,7 @@ head(data)
 info <- data %>% select(1:16)
 info <- info %>% 
   rename(
-    id = `뉴스 식별자`,
+    id = '뉴스 식별자',
     date = '일자',
     company = '언론사',
     author = '기고자',
