@@ -299,7 +299,12 @@ topterms %>%
   geom_col(show.legend = FALSE) +
   facet_wrap(~ topic, scales = "free") +
   coord_flip()
+```
 
+![LDA](img/LDA.png)
+
+
+```R
 spread <- topterms %>%
   mutate(topic = paste0("topic", topic)) %>%
   spread(topic, beta) %>%
@@ -309,4 +314,3 @@ spread <- topterms %>%
 spread
 ```
 
-![LDA](img/LDA.png)
