@@ -182,123 +182,82 @@ network %>%
 ```R
 # 필요한 패키지를 불러옵니다.
 library(readxl)
-library(dplyr) # 파이프 함수를 이용하여 변인 선택
+library(dplyr)
+library(KoNLP)
+library(tm) # 텍스트마이닝 패키지
+library(topicmodels)
+library(tidytext)
+library(ggplot2)
+library(tidyr)
+useSejongDic() # 국립국어원에서 배포하는 사전
+useNIADic() # 정보화진흥원에서 배포하는 사전
 ```
 
 ```R
-# 저장된 엑셀데이터 불러오기 
-data <- read_excel("sample.xlsx")
-head(data)
-
-# 마지막 2개 변수 제외 모두 
-tempdata <- data %>% select(1:17)
-
-# 변수명을 바꾸기 
-tempdata <- tempdata %>% 
-  rename(
-    newid = `뉴스 식별자`,
-    day=일자,
-    comp=언론사,
-    author=기고자,
-    title=제목,
-    cate_all_1=`통합 분류1`,
-    cate_all_2=`통합 분류2`,
-    cate_all_3=`통합 분류3`,
-    cate_event_1=`사건/사고 분류1`,
-    cate_event_2=`사건/사고 분류2`,
-    cate_event_3=`사건/사고 분류3`, 
-    agent=인물,
-    location=위치, 
-    organ=기관,
-    keyword=키워드,
-    feature=특성추출,
-    contents=본문
-  )
-
-# tempdata에서 콘텐츠(본문) 부분만 따오기
+# tempdata에서 콘텐츠(본문) 부분 추출
 contents <- tempdata$contents
 head(contents)
 ```
 
 ```R
-#한국어 텍스트분석을 위한 패키지
-library(KoNLP)
-
-# 데이터에서 명사만 추출하고자 함. 시스템 디폴트 사전을 사용해도 되나 좀더 정확한 분석을 위해 
-# 국립국어원에서 배포하는 사전과 정보화진흥원에서 배포하는 사전을 추가로 설치
-useSejongDic()
-useNIADic()
-
-# 때로는 이 사전에 추가되지 않은 신조어를 처리해야 할 때가 있습니다.
-# 이 때는 mergeUserDic이라는 명령어를 써서 추가합니다.
 mergeUserDic(data.frame(c("개깜놀","핵존맛","JMT"), c("ncn")))
+```
 
+한글을 분석할 때  
+국립국어원에서 배포하는 사전 useSejongDic()과 정보화진흥원에서 배포하는 사전 useNIADic()을 사용합니다.  
+하지만 사전에 추가되지 않은 신조어를 처리해야 할 때가 있습니다.  
+이 때는 mergeUserDic이라는 명령어를 써서 추가합니다.  
+
+```R
 # 명사를 추출
 txt <- extractNoun (contents)
 head(txt)
 
-# 우리가 원하지 않는 요소들을 추출해 내야 합니다
-# 추출 함수는 크게 세 가지가 있으며 첫번째로 gsub을 사용하겠습니다.
-# gsub은 문자열의 특정 부분을 지정하여 변환하는 기능을 수행. 오피스의 CTRL + H와 같음
+# 우리가 원하지 않는 요소들을 추출
+# 추출 함수 gsub 사용
+# gsub은 문자열의 특정 부분을 지정하여 변환하는 기능을 수행
 
-# 불용어처리
-#제어문자 삭제
+# 불용어 처리
+# 제어문자 삭제
 txt_data <- gsub("[[:cntrl:]]","",txt)
-#특수기호 삭제
+# 특수기호 삭제
 txt_data <- gsub("[[:punct:]]","",txt_data)
-#숫자 삭제
+# 숫자 삭제
 txt_data <- gsub("[[:digit:]]","",txt_data)
-#소문자 삭제
+# 소문자 삭제
 txt_data <- gsub("[[:lower:]]","",txt_data)
-#대문자 삭제
+# 대문자 삭제
 txt_data <- gsub("[[:upper:]]","",txt_data)
-#특수문자 삭제
+# 특수문자 삭제
 txt_data <- gsub("[^[:print:]]","",txt_data)
-
 # 기호 삭제
 txt_data <- gsub("▲","",txt_data)
 txt_data <- gsub("◎","",txt_data)
 
 head(txt_data)
-```
-
-```R
-# 텍스트마이닝 패키지
-library(tm)
 
 docs <- Corpus(VectorSource(txt_data))
+
 dtm <- DocumentTermMatrix(docs, control = list(removeNumbers = T,
                                                wordLength=c(2,Inf)
                                                ))
 dtma <- removeSparseTerms(dtm, as.numeric(0.98))
 inspect(dtma)
-```
 
-```R
 raw.sum <- apply(dtma,1,FUN=sum)
 dtma=dtma[raw.sum!=0,]
 
-library(topicmodels)
 # 전체 LDA
 lda.out <-LDA(dtma,control = list(seed=100),k=4)
 
-#문서, 토픽
+# 문서, 토픽
 dim(lda.out@gamma)
-#토픽, 단어
+# 토픽, 단어
 dim(lda.out@beta)
-#상위 10개
+# 상위 10개
 top.words <- terms(lda.out, 30)
 top.words
-```
 
-```R
-# 필요한 패키지를 불러옵니다.
-library(tidytext)
-library(ggplot2)
-library(dplyr)
-```
-
-```R
 terms <- tidy(lda.out, matrix = "beta")
 terms
 
@@ -314,10 +273,6 @@ topterms %>%
   geom_col(show.legend = FALSE) +
   facet_wrap(~ topic, scales = "free") +
   coord_flip()
-```
-
-```R
-library(tidyr)
 
 spread <- topterms %>%
   mutate(topic = paste0("topic", topic)) %>%
