@@ -10,7 +10,7 @@
 
 1. [카테고리 분류](#1-기사-카테고리-분류)
 2. [네트워크 분석](#2-네트워크-분석)
-9. [LDA](#9-LDA)
+3. [LDA](#9-LDA)
 ### 1. 카테고리 분류
 
 ```R
@@ -175,7 +175,7 @@ network %>%
   arrange(desc(cor))
 ```
 
-### 9. LDA
+### 3. LDA
 
 `LDA`는 문서의 집합으로부터 어떤 토픽이 존재하는지를 알아내기 위한 알고리즘입니다.
 
@@ -255,8 +255,6 @@ txt_data <- gsub("▲","",txt_data)
 txt_data <- gsub("◎","",txt_data)
 ```
 
-
-
 ```R
 docs <- Corpus(VectorSource(txt_data))
 
@@ -300,6 +298,14 @@ top.words
 terms <- tidy(lda.out, matrix = "beta")
 terms
 ```
+
+|topic|term|beta|
+|-|-|-|
+|1|가능성|0.00294|
+|2|가능성|0.00095|
+|3|가능성|0.00032|
+|4|가능성|0.00270|
+||||
 
 ```R
 topterms <- terms %>%
