@@ -1,60 +1,43 @@
-#현재의 디렉토리주소 알아보기
-getwd()
-#디렌토리 주소 재설정
-setwd("")
-#디렌토리 주소 재설정
-getwd()
+# 6. Treemap
 
-#폴더 안의 파일들 확인하기
-list.files()
-
-install.packages("readxl")
+# 필요한 패키지를 불러옵니다.
 library(readxl)
-
-# 저장된 엑셀데이터 불러오기 
-data <- read_excel("sample.xlsx")
-
-
-nstall.packages("KoNLP")
 library(KoNLP)
-
-## 사전 선택 택1
+library(tm)
+library(stringr)
+library('RColorBrewer')
+library(treemap)
 useSejongDic()
 useNIADic()
 
-install.packages("tm")
-library(tm)
+data <- read_excel("sample.xlsx")
 
-##tempdata에서 콘텐츠(본문) 부분만 따오기
-contents <- data$'본문' 
+# temp_data에서 콘텐츠(본문) 부분만 추출
+contents <- data$'본문'
 head(contents)
 
-
-install.packages("stringr")
-library(stringr)
-#영문표현삭제
+# 영문표현 삭제
 newcontents <- str_replace_all(contents, "[[:lower:]]", "")
-#제어문자 삭제
+# 제어문자 삭제
 newcontents <- str_replace_all(newcontents, "[[:cntrl:]]", "")
-#특수기호 삭제
+# 특수기호 삭제
 newcontents <- str_replace_all(newcontents, "[[:punct:]]", "")
-#숫자 = 삭제
+# 숫자 = 삭제
 newcontents <- str_replace_all(newcontents, "[[:digit:]]", "")
-#괄호삭제
+# 괄호 삭제
 newcontents <- str_replace_all(newcontents, "\\(", "")
 newcontents <- str_replace_all(newcontents, "\\)", "")
-
 #따옴표 삭제
 newcontents <- str_replace_all(newcontents, "'", "")
 newcontents <- str_replace_all(newcontents, "'", "")
 
 noun <- extractNoun(newcontents)
 
-##불용어처리
+# 불용어 처리
 txt_data <- gsub("//d+","",noun)
 txt_data <- gsub("[[:cntrl:]]","",txt_data)
 txt_data <- gsub("[[:punct:]]","",txt_data)
-#이녀석이 숫자를 삭제해줍니다. 
+# 숫자 삭제
 txt_data <- gsub("[[:digit:]]","",txt_data)
 txt_data <- gsub("[[:lower:]]","",txt_data)
 txt_data <- gsub("[[:upper:]]","",txt_data)
@@ -73,44 +56,40 @@ myCorpus <- tm_map(myCorpus, tolower)
 myCorpus <- tm_map(myCorpus, stripWhitespace)
 
 WordList <- sapply(myCorpus, extractNoun, USE.NAMES=FALSE)
+
 vectordata <- unlist(WordList)
 vectordata <- Filter(function(x){nchar(x)>1}, vectordata)
 
 preview<- sort(table(vectordata), decreasing=TRUE,100)
 View(preview)
 
-#빈도추출 
+# 빈도 추출 
 wordcount <- table(vectordata)
 write.csv(wordcount,file="freq.csv")
 
-
-#상위빈도로 정렬해서 result2로 명명
+# 상위 빈도로 정렬
 result2 <- sort(wordcount, decreasing=TRUE)
 View(result2)
 
-#누적빈도 알아보기
+# 누적 빈도 알아보기
 cumsum.word.freq <-cumsum(result2)
 cumsum.word.freq[1:50]
 
-#전체합이1이되는비율알아보기
+# 전체 합이 1이 되는 비율
 prop.word.freq <-cumsum.word.freq/cumsum.word.freq[length(cumsum.word.freq)]
 prop.word.freq[1:100]
 
-#상위빈도 단어는 따로 저장
+# 상위 빈도 단어는 따로 저장
 result1 <- head(sort(wordcount, decreasing=TRUE), 100)
 
-
-#데이터프레임으로 변환
+# 데이터 프레임으로 변환
 result1_wf <-data.frame(result1)
 View(result1_wf)
-library('RColorBrewer')
 display.brewer.all()
 
 pal<-brewer.pal(6,"Dark2")
 
-#트리맵그리기
-install.packages("treemap")
-library(treemap)
+# 트리맵 그리기
 dev.off()
 treemap(result1_wf # 대상 데이터 설정
         ,title = "지소미아"
