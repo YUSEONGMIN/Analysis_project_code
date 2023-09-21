@@ -1,34 +1,17 @@
-#현재의 디렉토리주소 알아보기
-getwd()
-#디렌토리 주소 재설정
-setwd("")
-##현재의 디렉토리주소 알아보기
-getwd()
+# 1. Classify
 
-# 벡터(숫자만)
-# 리스트(숫자와 문자)
-# 행렬(숫자 층)
-# 데이터프레임(숫자와 문자 층)
-
-# 빅카인즈는 대표적인 데이터프레임
-
-
-#install.packages("readxl")
+# 필요한 패키지를 불러옵니다.
 library(readxl)
-
-#데이터 불러오기 
-data <- read_excel("sample.xlsx")
-
-
-#select 함수를 사용하기 위해 dplyr을 설치#
-#install.packages("dplyr")
 library(dplyr)
+library(stringr)
+library('lubridate')
+library(tidyr)
 
-#기사의 정보가 있는 16개 변인만 가지고 오기
+data <- read_excel("sample.xlsx")
+head(data)
+
+# 기사의 정보가 있는 16개의 변인 가져오기
 info <- data %>% select(1:16)
-
-# 변수명을 영어로 변경하면 오류 줄어듦
-# 변수명을 변경
 info <- info %>% 
   rename(
     id = `뉴스 식별자`,
@@ -49,11 +32,7 @@ info <- info %>%
     feature = '특성추출'
   )
 
-#날짜변환
-
-#install.packages("stringr")
-library(stringr)
-
+# 날짜 변환
 info %>% 
   mutate(
     yr = str_sub(date,start=1,end=4),
@@ -61,12 +40,7 @@ info %>%
     dy = str_sub(date,start=7,end=8)
   ) %>% select(yr:dy)
 
-# 일자를 년/월/일 분할
-
-# 날짜 형식의 데이터로 변환 
-#install.packages("lubridate")
-library('lubridate')
-
+# 년/월/일 분할
 info %>% 
   mutate(
     yr = str_sub(date,start=1,end=4),
@@ -76,15 +50,14 @@ info %>%
   ) %>% select(yr:dy, date)
 
 
-#검색자료에 몇 개의 언론사가 포함되어 있는 지 알아보자
+# 몇 개의 언론사가 포함되어 있는지 확인
 table(info$company)
+
 info %>% 
   count(company) %>% 
   arrange(desc(n))
 
-# 언론사별 내림차순
-
-#기고자의 분류를 알아보자
+# 어느 기자 분이 기사를 많이 썼는지 확인
 info %>% 
   mutate(
     author = str_replace(author, "/", ""),
@@ -93,26 +66,19 @@ info %>%
   count(reporter) %>% 
   arrange(desc(n))
 
-# 기고자를 빼놓고 기사 한계점
+# 기자를 빼놓고 기사를 씀 (한계점)
 
-
-# 분류 정보를 봅시다. 
+# 분류 정보 확인
 category <- info$category1
 str_split(category, pattern=">")
 
-# > 나누기
-
-######## 분류 좀더 하기#####
-#install.packages("tidyr")
-library(tidyr)
-
+# 분류 정보 나누기
 info %>% 
   separate(category1, c("ct1","ct2"),
            sep=">",remove=F,extra="merge",fill="right") %>% 
   select(category1,ct1,ct2)
 
-# 국회_정당 _ 하위분류
-
+# 정치>국회_정당 하위 분류
 info %>% 
   separate(category1, c("ct1","ct2"),
            sep=">",remove=F,extra="merge",fill="right") %>% 
@@ -130,7 +96,3 @@ firstct <- info %>%
   select(ct1a, ct1b, ct2a,ct2b) 
 
 table(c(firstct$ct1a,firstct$ct1b,firstct$ct2a,firstct$ct2b))  
-
-# 정형데이터 이해 편함
-# 빅카인즈 체크 (빅카인즈 활용)
-
