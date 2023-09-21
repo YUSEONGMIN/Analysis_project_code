@@ -6,7 +6,12 @@
 정재관 교수님과 배여운 기자님으로부터  
 `R`을 활용한 뉴스 빅데이터 전처리 및 시각화 기법을 배웠습니다.
 
-### 1. 기사 카테고리 분류 및 네트워크 분석
+## 목차
+
+1. [카테고리 분류](#1-기사-카테고리-분류)
+2. [네트워크 분석](#2-네트워크-분석)
+
+### 1. 기사 카테고리 분류
 
 ```R
 # 필요한 패키지를 불러옵니다.
@@ -123,6 +128,52 @@ firstct <- info %>%
 table(c(firstct$ct1a,firstct$ct1b,firstct$ct2a,firstct$ct2b))  
 ```
 
+### 2. 네트워크 분석
+
+인물이 나오면 네트워크 분석을 할 수 있습니다.  
+인물(player) 변수는 다음과 같습니다.  
+
+|뉴스 식별자|...| 인물(player) |
+|-|-|-|
+|011..|...| 서주석,니시노,... | 
+|081..|...| 스가 요시히데 | 
+|021..|...|윌터 샤프, 제임스 서먼,...|
+
+```R
+# 각각의 인물을 쪼개기
+node <- info %>% 
+  separate(player, c("name1","name2","name3","name4","name5","name6","name7","name8","name9","name10"),
+           sep=",",remove=F,extra="merge",fill="right") %>% 
+  select(starts_with("name"))
+```
+
+`ggraph`는 네트워크 시각화에서 주로 쓰이는 함수입니다.  
+node와 edge를 구성하고 있습니다.  
+(node: 행위자 / edge: 연결 -> 행위자와 행위자 사이를 연결)
+
+```R
+network <-as_tbl_graph(node)
+plot(network)
+network
+
+ggraph(network) + geom_node_point() + geom_edge_link()
+# 기본 레이아웃은 stress이며, graphopt, grid 등 다양하게 있습니다.
+network %>% 
+  as_tbl_graph() %>% 
+  ggraph(layout='graphopt') + geom_node_text(aes(label=name)) + geom_edge_link(aes(start_cap = label_rect(node1.name), end_cap = label_rect(node2.name)))
+```
+
+![네트워크 분석](network.jpg)
+
+매개 중심성을 계산하면 누가 누구와 많이 연결되었는지 알 수 있습니다.  
+
+```R
+network %>% 
+  as_tbl_graph() %>% 
+  mutate(cor= centrality_betweenness()) %>% 
+  as_tibble %>% 
+  arrange(desc(cor))
+```
 
 ### LDA
 
