@@ -6,11 +6,76 @@
 정재관 교수님과 배여운 기자님으로부터  
 `R`을 활용한 뉴스 빅데이터 전처리 및 시각화 기법을 배웠습니다.
 
-## 데이터 분석
+### 1. 기사 카테고리 분류 및 네트워크 분석
 
-###
+```R
+# 필요한 패키지를 불러옵니다.
+library(readxl)
+library(dplyr)
+library(stringr)
+library(lubridate)
+library(tidyr)
+library(tidygraph) # 데이터프레임을 그래프로
+library(ggraph) # 네트워크 분석 시각화
+```
 
-## 데이터 시각화
+```R
+# 수집한 기사 데이터를 불러옵니다.
+data <- read_excel("sample.xlsx")
+head(data)
+```
+
+| title1 | title2 | title3 |
+| --- | --- | --- |
+| 1 | 2 | 3 |
+| 4 | 5 | 6 |
+| 7 | 8 | 9 |
+
+```R
+# 기사의 정보가 있는 16개의 변인 가져오기
+info <- data %>% select(1:16)
+info <- info %>% 
+  rename(
+    id = `뉴스 식별자`,
+    date = '일자',
+    company = '언론사',
+    author = '기고자',
+    title = '제목',
+    category1 = `통합 분류1`,
+    category2 = `통합 분류2`,
+    category3 = `통합 분류3`,
+    event1 = `사건/사고 분류1`,
+    event2 = `사건/사고 분류2`,
+    event3 = `사건/사고 분류3`, 
+    player = '인물',
+    location = '위치', 
+    organization = '기관',
+    keyword = '키워드',
+    feature = '특성추출'
+  )
+```
+
+날짜 등을 분석할 수 있도록 변환 후,  
+몇 개의 언론사가 포함되어 있는지 확인했습니다.  
+
+```R
+table(info$company)
+
+info %>% 
+  count(company) %>% 
+  arrange(desc(n))
+```
+
+| company | n |
+| --- | --- |
+| YTN | 199 |
+| 세계일보 | 118 |
+| 중앙일보 | 93 |
+|||
+
+총 43개의 언론사가 있었으며, 가장 많이 수집된 언론사는 YTN으로 199개가 나왔습니다.  
+
+
 
 ### LDA
 
