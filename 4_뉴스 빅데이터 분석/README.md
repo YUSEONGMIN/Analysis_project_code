@@ -163,7 +163,7 @@ network %>%
   ggraph(layout='graphopt') + geom_node_text(aes(label=name)) + geom_edge_link(aes(start_cap = label_rect(node1.name), end_cap = label_rect(node2.name)))
 ```
 
-![네트워크 분석](Network.png)
+![네트워크 분석](img/Network.png)
 
 매개 중심성을 계산하면 누가 누구와 많이 연결되었는지 알 수 있습니다.  
 
